@@ -20,7 +20,7 @@
 #define CONSTANTS_H
 
 
-#define REPETIER_VERSION					"RF.01.33mod"
+#define REPETIER_VERSION					"RF.01.33mod_b"
 #define UI_PRINTER_COMPANY					"Conrad SE"
 #define UI_VERSION_STRING					"V " REPETIER_VERSION
 
