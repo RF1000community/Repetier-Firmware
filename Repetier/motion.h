@@ -80,7 +80,7 @@ private:
     speed_t             vStart;                     ///< Starting speed in steps/s.
     speed_t             vEnd;                       ///< End speed in steps/s
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
     int32_t             advanceRate;               ///< Advance steps at full speed
     int32_t             advanceFull;               ///< Maximum advance at fullInterval [steps*65536]
@@ -368,7 +368,7 @@ public:
 
     inline void updateAdvanceSteps(speed_t v,uint8_t max_loops,bool accelerate)
     {
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
         if(!Printer::isAdvanceActivated()) return;
 #ifdef ENABLE_QUADRATIC_ADVANCE
         long advanceTarget = Printer::advanceExecuted;
@@ -409,10 +409,10 @@ public:
 
         Printer::advanceStepsSet = tred;
         HAL::allowInterrupts();
-        (void)max_loops;
-        (void)accelerate;
 #endif // ENABLE_QUADRATIC_ADVANCE
 #endif // USE_ADVANCE
+        (void)max_loops;
+        (void)accelerate;
     } // updateAdvanceSteps
 
     inline bool moveDecelerating()
@@ -491,10 +491,8 @@ public:
 
     static inline void removeCurrentLineForbidInterrupt()
     {
-        nextPlannerIndex(linesPos);
-        //linesPos++;
-        //if(linesPos>=MOVE_CACHE_SIZE) linesPos=0;
-        cur->task = TASK_NO_TASK;
+        linesPos++;
+        if(linesPos>=MOVE_CACHE_SIZE) linesPos=0;
         cur = NULL;
 
         HAL::forbidInterrupts();
@@ -505,9 +503,9 @@ public:
 
     static inline void pushLine()
     {
-        nextPlannerIndex(linesWritePos);
-        //linesWritePos++;
-        //if(linesWritePos>=MOVE_CACHE_SIZE) linesWritePos = 0;
+        linesWritePos++;
+
+        if(linesWritePos>=MOVE_CACHE_SIZE) linesWritePos = 0;
         Printer::setMenuMode(MENU_MODE_PRINTING,true);
         
         InterruptProtectedBlock noInts; //BEGIN_INTERRUPT_PROTECTED
@@ -558,7 +556,7 @@ public:
 
     static inline void nextPlannerIndex(uint8_t& p)
     {
-        p = (p >= MOVE_CACHE_SIZE - 1 ? 0 : p + 1);
+        p = (p == MOVE_CACHE_SIZE - 1 ? 0 : p + 1);
     } // nextPlannerIndex
 
     static inline void queueTask( char task )
@@ -604,10 +602,7 @@ public:
         if(isEMove())
         {
             Extruder::enable();
-#if USE_ADVANCE
-            if(!Printer::isAdvanceActivated()) // Set direction if no advance/OPS enabled
-#endif
-                  Extruder::setDirection(isEPositiveMove());
+            Extruder::setDirection(isEPositiveMove());
         }
         started = 1;
 

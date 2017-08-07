@@ -1,7 +1,0 @@
-M104 S0 T0 ; turn off left extruder 1
-M104 S0 T1 ; turn off right extruder 2
-M140 S0 ; turn off heat bed
-M400
-M3079 ; output the object
-M400
-M84 ; disable motor

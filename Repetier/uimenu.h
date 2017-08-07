@@ -92,8 +92,6 @@ List of placeholder:
 %Fs : Fan speed
 %PN : Printer name
 %Se : Steps per mm current extruder
-%S0 : Steps per mm extruder0
-%S1 : Steps per mm extruder1
 %Sz : Mikrometer per Z-Single_Step (Z_Axis)
 %SM : Matrix has changed in Ram and is ready to Save. -> *)
 %is : Stepper inactive time in seconds
@@ -105,15 +103,12 @@ List of placeholder:
 %Xm : PID drive min
 %XM : PID drive max
 %XD : PID max
-%XS : Temperature Sensor
 %Xw : Extruder watch period in seconds
 %XT : Extruder wait retract temperature
 %XU : Extruder wait retract unit
 %Xh : Extruder heat manager (BangBang/PID)
 %Xa : Advance K value
 %Xl : Advance L value
- %Xb : E0 Advance L value
- %Xc : E1 Advance L value
 %Xf : Extruder max. start feedrate
 %XF : Extruder max. feedrate
 %XA : Extruder max. acceleration
@@ -158,13 +153,6 @@ List of placeholder:
 %WP : active work part z matrix
 %Z1-Z4: Page5 service intervall
 %Z5-Z8: Page4 printing/milling time
-
-%MX : Motorcurrent X
-%MY : Motorcurrent Y
-%MZ : Motorcurrent Z
-%M0 : Motorcurrent T0
-%M1 : Motorcurrent T1
-
 */
 
 // Define precision for temperatures. With small displays only integer values fit.
@@ -815,115 +803,36 @@ UI_MENU_ACTIONSELECTOR_FILTER(ui_menu_emergency_zstop_max,UI_TEXT_EMERGENCY_ZSTO
 #define EMERGENCY_ZSTOP_MINMAX_COUNT 0
 #endif // FEATURE_EMERGENCY_STOP_ALL
 
-//############################################################### PID MENU
-
-UI_MENU_ACTION4C(ui_menu_pid_choose_classicpid_ack,UI_ACTION_CHOOSE_CLASSICPID,UI_TEXT_PID_ACK)
-UI_MENU_ACTIONSELECTOR(ui_menu_pid_choose_classicpid,UI_ACTION_TEXT_CLASSICPID,ui_menu_pid_choose_classicpid_ack)
-UI_MENU_ACTION4C(ui_menu_pid_choose_lesserintegral_ack,UI_ACTION_CHOOSE_LESSERINTEGRAL,UI_TEXT_PID_ACK)
-UI_MENU_ACTIONSELECTOR(ui_menu_pid_choose_lesserintegral,UI_ACTION_TEXT_PESSEN,ui_menu_pid_choose_lesserintegral_ack)
-UI_MENU_ACTION4C(ui_menu_pid_choose_some_ack,UI_ACTION_CHOOSE_SOME,UI_TEXT_PID_ACK)
-UI_MENU_ACTIONSELECTOR(ui_menu_pid_choose_some,UI_ACTION_TEXT_SOME,ui_menu_pid_choose_some_ack)
-UI_MENU_ACTION4C(ui_menu_pid_choose_no_ack,UI_ACTION_CHOOSE_NO,UI_TEXT_PID_ACK)
-UI_MENU_ACTIONSELECTOR(ui_menu_pid_choose_no,UI_ACTION_TEXT_NO,ui_menu_pid_choose_no_ack)
-UI_MENU_CHANGEACTION(ui_menu_pid_choose_drivemin,UI_TEXT_EXTR_DMIN,UI_ACTION_CHOOSE_DMIN)
-UI_MENU_CHANGEACTION(ui_menu_pid_choose_drivemax,UI_TEXT_EXTR_DMAX,UI_ACTION_CHOOSE_DMAX)
-UI_MENU_CHANGEACTION(ui_menu_pid_choose_PIDmax,UI_TEXT_EXTR_PMAX,UI_ACTION_CHOOSE_PIDMAX)
-UI_MENU_CHANGEACTION(ui_menu_pid_choose_sensor,UI_TEXT_EXTR_SENSOR_TYPE,UI_ACTION_CHOOSE_SENSOR)
-
-#define UI_MENU_PID_CHOOSE {UI_MENU_ADDCONDBACK &ui_menu_pid_choose_classicpid ,&ui_menu_pid_choose_lesserintegral, &ui_menu_pid_choose_some, &ui_menu_pid_choose_no, &ui_menu_pid_choose_drivemin, &ui_menu_pid_choose_drivemax, &ui_menu_pid_choose_PIDmax, &ui_menu_pid_choose_sensor}
-UI_MENU(ui_menu_pid_choose,UI_MENU_PID_CHOOSE,8) //8 ??? mit 9 gabs probleme. ???
-
-UI_MENU_SUBMENU(ui_menu_pid_ext0_cond,  UI_TEXT_EXTRUDER " 0", ui_menu_pid_choose)
-#define UI_MENU_PID_EXT0_COND   &ui_menu_pid_ext0_cond
-#define UI_MENU_PID_EXT0_COUNT 1
-
-#if NUM_EXTRUDER>1
- UI_MENU_SUBMENU(ui_menu_pid_ext1_cond,  UI_TEXT_EXTRUDER " 1", ui_menu_pid_choose)
- #define UI_MENU_PID_EXT1_COND   ,&ui_menu_pid_ext1_cond
- #define UI_MENU_PID_EXT1_COUNT 1
-#else
- #define UI_MENU_PID_EXT1_COND 
- #define UI_MENU_PID_EXT1_COUNT 0
-#endif //NUM_EXTRUDER>1
-
-#if HAVE_HEATED_BED==true
- UI_MENU_SUBMENU(ui_menu_pid_bed_cond,  UI_TEXT_BED,            ui_menu_pid_choose)
- #define UI_MENU_PID_BED_COND   ,&ui_menu_pid_bed_cond
- #define UI_MENU_PID_BED_COUNT 1
-#else
- #define UI_MENU_PID_BED_COND 
- #define UI_MENU_PID_BED_COUNT 0
-#endif // HAVE_HEATED_BED==true
-
-#define UI_MENU_PID_COND   {UI_MENU_ADDCONDBACK UI_MENU_PID_EXT0_COND UI_MENU_PID_EXT1_COND UI_MENU_PID_BED_COND}
-#define UI_MENU_PID_COUNT   UI_MENU_BACKCNT + UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT
-UI_MENU(ui_menu_pid,UI_MENU_PID_COND,UI_MENU_PID_COUNT)
-
-//############################################################### PID MENU
-
-//############################################################### MOTOR MENU
-//hier wird davon ausgegangen dass 1 extruder immer da ist und der zweite optional. Auch im Millingmode.
-UI_MENU_CHANGEACTION(ui_menu_motor_x,UI_TEXT_MOTOR_X,UI_ACTION_CHOOSE_MOTOR_X)
-#define UI_MENU_MOTOR_X_COND   &ui_menu_motor_x
-#define UI_MENU_MOTOR_X_COUNT 1
-UI_MENU_CHANGEACTION(ui_menu_motor_y,UI_TEXT_MOTOR_Y,UI_ACTION_CHOOSE_MOTOR_Y)
-#define UI_MENU_MOTOR_Y_COND   ,&ui_menu_motor_y
-#define UI_MENU_MOTOR_Y_COUNT 1
-UI_MENU_CHANGEACTION(ui_menu_motor_z,UI_TEXT_MOTOR_Z,UI_ACTION_CHOOSE_MOTOR_Z)
-#define UI_MENU_MOTOR_Z_COND   ,&ui_menu_motor_z
-#define UI_MENU_MOTOR_Z_COUNT 1
-UI_MENU_CHANGEACTION_FILTER(ui_menu_motor_e0,     UI_TEXT_MOTOR_E0,          UI_ACTION_CHOOSE_MOTOR_E0, MENU_MODE_PRINTER,0) //extruder nur bei printermode
-UI_MENU_CHANGEACTION_FILTER(ui_menu_motorsteps_e0,UI_TEXT_EXTR_STEPS0,       UI_ACTION_EXTR_STEPS_E0,   MENU_MODE_PRINTER,0)
-UI_MENU_CHANGEACTION_FILTER(ui_menu_advanceL_e0,  UI_TEXT_EXTR_ADVANCE_L_E0, UI_ACTION_ADVANCE_L_E0,    MENU_MODE_PRINTER,0)
-#define UI_MENU_MOTOR_E0_COND   ,&ui_menu_motor_e0, &ui_menu_motorsteps_e0, &ui_menu_advanceL_e0
-#define UI_MENU_MOTOR_E0_COUNT 3
-//UI_ACTION_EXTR_STEPS
-#if NUM_EXTRUDER>1
- UI_MENU_CHANGEACTION_FILTER(ui_menu_motor_e1,     UI_TEXT_MOTOR_E1,          UI_ACTION_CHOOSE_MOTOR_E1, MENU_MODE_PRINTER,0) //extruder nur bei printermode
- UI_MENU_CHANGEACTION_FILTER(ui_menu_motorsteps_e1,UI_TEXT_EXTR_STEPS1,       UI_ACTION_EXTR_STEPS_E1,   MENU_MODE_PRINTER,0)
- UI_MENU_CHANGEACTION_FILTER(ui_menu_advanceL_e1,  UI_TEXT_EXTR_ADVANCE_L_E1, UI_ACTION_ADVANCE_L_E1,    MENU_MODE_PRINTER,0)
- #define UI_MENU_MOTOR_E1_COND   ,&ui_menu_motor_e1, &ui_menu_motorsteps_e1, &ui_menu_advanceL_e1
- #define UI_MENU_MOTOR_E1_COUNT 3
-#else
- #define UI_MENU_MOTOR_E1_COND 
- #define UI_MENU_MOTOR_E1_COUNT 0
-#endif //NUM_EXTRUDER>1
-
-
-#define UI_MENU_MOTOR_COND   {UI_MENU_ADDCONDBACK UI_MENU_MOTOR_X_COND UI_MENU_MOTOR_Y_COND UI_MENU_MOTOR_Z_COND UI_MENU_MOTOR_E0_COND UI_MENU_MOTOR_E1_COND}
-#define UI_MENU_MOTOR_COUNT   UI_MENU_BACKCNT + UI_MENU_MOTOR_X_COUNT + UI_MENU_MOTOR_Y_COUNT + UI_MENU_MOTOR_Z_COUNT + UI_MENU_MOTOR_E0_COUNT + UI_MENU_MOTOR_E1_COUNT
-UI_MENU(ui_menu_motor,UI_MENU_MOTOR_COND,UI_MENU_MOTOR_COUNT)
-//############################################################### MOTOR MENU
-
 #define UI_MENU_GENERAL {UI_MENU_ADDCONDBACK &ui_menu_general_baud,&ui_menu_general_stepper_inactive,&ui_menu_general_max_inactive BEEPER_MODE_ENTRY RGB_LIGHT_ENTRY OPERATING_MODE_ENTRY Z_ENDSTOP_TYPE_ENTRY MILLER_TYPE_ENTRY EXTRUDER_OFFSET_TYPE_ENTRY_XY EMERGENCY_PAUSE_MINMAX_ENTRY EMERGENCY_ZSTOP_MINMAX_ENTRY}
 UI_MENU(ui_menu_general,UI_MENU_GENERAL,UI_MENU_BACKCNT+1+1+1+BEEPER_MODE_COUNT+RGB_LIGHT_COUNT+OPERATING_MODE_COUNT+Z_ENDSTOP_TYPE_COUNT+MILLER_TYPE_COUNT+EXTRUDER_OFFSET_TYPE_COUNT_XY+EMERGENCY_PAUSE_MINMAX_COUNT+EMERGENCY_ZSTOP_MINMAX_COUNT +1)
 
 /** \brief Configuration menu */
-UI_MENU_SUBMENU(ui_menu_conf_general,  UI_TEXT_GENERAL,        ui_menu_general)
-UI_MENU_SUBMENU(ui_menu_conf_accel,    UI_TEXT_ACCELERATION,   ui_menu_accel)
-UI_MENU_SUBMENU(ui_menu_conf_feed,     UI_TEXT_FEEDRATE,       ui_menu_feedrate)
-UI_MENU_SUBMENU_FILTER(ui_menu_conf_pid, UI_TEXT_TEMPERATURES, ui_menu_pid, MENU_MODE_PRINTER, 0) 
-//#if MENU_MODE_PRINTER
-//#define MENU_MODE_PRINTER_COUNT 1
-//#else
-//#define MENU_MODE_PRINTER_COUNT 0
-//#endif //MENU_MODE_PRINTER
-UI_MENU_SUBMENU(ui_menu_conf_motor, UI_TEXT_STEPPER,      ui_menu_motor) 
-UI_MENU_SUBMENU(ui_menu_z_calibration, UI_TEXT_ZCALIB,         ui_menu_z)
+UI_MENU_SUBMENU(ui_menu_conf_general, UI_TEXT_GENERAL,      ui_menu_general)
+UI_MENU_SUBMENU(ui_menu_conf_accel,   UI_TEXT_ACCELERATION, ui_menu_accel)
+UI_MENU_SUBMENU(ui_menu_conf_feed,    UI_TEXT_FEEDRATE,     ui_menu_feedrate)
 
-UI_MENU_ACTION4C(ui_menu_restore_defaults_ack,UI_ACTION_RESTORE_DEFAULTS,UI_TEXT_RESTORE_DEFAULTS4)
-UI_MENU_ACTIONSELECTOR(ui_menu_restore_defaults,UI_TEXT_RESTORE_DEFAULTS,ui_menu_restore_defaults_ack)
+#ifdef SOFTWARE_LEVELING
+#define UI_MENU_SL_COND ,&ui_menu_conf_level
+#define UI_MENU_SL_CNT 1
+UI_MENU_SUBMENU(ui_menu_conf_level, UI_TEXT_LEVEL, ui_menu_level)
+#else
+#define UI_MENU_SL_COND
+#define UI_MENU_SL_CNT 0
+#endif // SOFTWARE_LEVELING
 
-#define UI_MENU_CONFIGURATION {UI_MENU_ADDCONDBACK &ui_menu_conf_general, &ui_menu_conf_pid, &ui_menu_conf_motor, &ui_menu_conf_accel,&ui_menu_conf_feed, &ui_menu_z_calibration, &ui_menu_restore_defaults }
-UI_MENU(ui_menu_configuration,UI_MENU_CONFIGURATION,UI_MENU_BACKCNT+1+5+1)
+UI_MENU_SUBMENU(ui_menu_z_calibration, UI_TEXT_ZCALIB, ui_menu_z)
+UI_MENU_ACTIONCOMMAND(ui_menu_restore_defaults,UI_TEXT_RESTORE_DEFAULTS,UI_ACTION_RESTORE_DEFAULTS)
+
+#define UI_MENU_CONFIGURATION {UI_MENU_ADDCONDBACK &ui_menu_conf_general,&ui_menu_conf_accel,&ui_menu_conf_feed, &ui_menu_z_calibration, &ui_menu_restore_defaults UI_MENU_SL_COND}
+UI_MENU(ui_menu_configuration,UI_MENU_CONFIGURATION,UI_MENU_BACKCNT+UI_MENU_SL_CNT+5)
 
 /** \brief Main menu */
-UI_MENU_SUBMENU(ui_menu_main1, UI_TEXT_QUICK_SETTINGS,  ui_menu_quick)
-UI_MENU_SUBMENU(ui_menu_main2, UI_TEXT_POSITION,        ui_menu_positions)
+UI_MENU_SUBMENU(ui_menu_main1, UI_TEXT_QUICK_SETTINGS, ui_menu_quick)
+UI_MENU_SUBMENU(ui_menu_main2, UI_TEXT_POSITION,       ui_menu_positions)
 UI_MENU_SUBMENU_FILTER(ui_menu_main3, UI_TEXT_EXTRUDER, ui_menu_extruder, MENU_MODE_PRINTER, 0)
 
 #if SHOW_DEBUGGING_MENU
-UI_MENU_SUBMENU(ui_menu_main4, UI_TEXT_DEBUGGING,       ui_menu_debugging)
+UI_MENU_SUBMENU(ui_menu_main4, UI_TEXT_DEBUGGING,      ui_menu_debugging)
 #define DEBUGGING_MENU_ENTRY    &ui_menu_main4,
 #define DEBUGGING_MENU_COUNT    1
 #else

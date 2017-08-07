@@ -46,22 +46,22 @@
 class Printer
 {
 public:
-#if USE_ADVANCE
+#if defined(USE_ADVANCE)
     static volatile int     extruderStepsNeeded;                // This many extruder steps are still needed, <0 = reverse steps needed.
+    static uint8_t          minExtruderSpeed;                   // Timer delay for start extruder speed
     static uint8_t          maxExtruderSpeed;                   // Timer delay for end extruder speed
     static volatile int     advanceStepsSet;
 
 #ifdef ENABLE_QUADRATIC_ADVANCE
     static long             advanceExecuted;                    // Executed advance steps
 #endif // ENABLE_QUADRATIC_ADVANCE
-#endif // USE_ADVANCE
+#endif // defined(USE_ADVANCE)
 
     static uint8_t          menuMode;
     static float            axisStepsPerMM[];
     static float            invAxisStepsPerMM[];
     static float            maxFeedrate[];
     static float            homingFeedrate[];
-    static uint32_t         maxInterval; // slowest allowed interval
     static float            maxAccelerationMMPerSquareSecond[];
     static float            maxTravelAccelerationMMPerSquareSecond[];
     static unsigned long    maxPrintAccelerationStepsPerSquareSecond[];
@@ -208,8 +208,6 @@ public:
 #if FEATURE_UNLOCK_MOVEMENT
     static unsigned char    g_unlock_movement;
 #endif //FEATURE_UNLOCK_MOVEMENT
-
-    static uint8_t   motorCurrent[5];
 
 #if FEATURE_ZERO_DIGITS
     static short            g_pressure_offset;

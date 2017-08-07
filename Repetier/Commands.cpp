@@ -1279,7 +1279,7 @@ void Commands::executeGCode(GCode *com)
                 if(com->hasP()) cont = com->P;
                 if(com->hasR()) cycles = static_cast<int>(com->R);
                 if(com->hasJ()) method = static_cast<int>(com->J); //original Repetier used hasC, we dont have that in this version of repetier.
-                if(cont >= NUM_TEMPERATURE_LOOPS) cont = NUM_TEMPERATURE_LOOPS -1;
+                if(cont >= NUM_TEMPERATURE_LOOPS) cont = NUM_TEMPERATURE_LOOPS;
                 if(cont < 0) cont = 0;
                 tempController[cont]->autotunePID(temp,cont,cycles,com->hasX(), method);
 #endif // NUM_TEMPERATURE_LOOPS > 0
@@ -1636,13 +1636,14 @@ void Commands::executeGCode(GCode *com)
                 break;
             }
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
             case 223:   // M223 - Extruder interrupt test
             {
                 if(com->hasS())
                 {
                     InterruptProtectedBlock noInts; //BEGIN_INTERRUPT_PROTECTED
                     Printer::extruderStepsNeeded += com->S;
+                    noInts.unprotect(); //END_INTERRUPT_PROTECTED
                 }
                 break;
             }
@@ -1735,17 +1736,8 @@ void Commands::executeGCode(GCode *com)
 
             case 908:   // M908 - Control digital trimpot directly.
             {
-                if( com->hasP() && com->hasS() ){
-                    uint8_t current = com->S;
-                    if(com->hasP() > 3 + NUM_EXTRUDER) break;
-                    if(current > 150){
-                       //break;
-                    }else if(current < MOTOR_CURRENT_MIN){
-                       //break;
-                    }else{
-                       setMotorCurrent((uint8_t)com->P, current); //ohne einschränkung?
-                    }
-                }
+                if(com->hasP() && com->hasS())
+                    setMotorCurrent((uint8_t)com->P, (unsigned int)com->S);
                 break;
             }
             case 500:   // M500
@@ -1792,8 +1784,6 @@ void Commands::executeGCode(GCode *com)
 #endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
 
                 EEPROM::initializeAllOperatingModes();
-                UI_STATUS( UI_TEXT_RESTORE_DEFAULTS );
-                showInformation( PSTR(UI_TEXT_CONFIGURATION), PSTR(UI_TEXT_RESTORE_DEFAULTS), PSTR(UI_TEXT_OK) );
                 break;
             }
 

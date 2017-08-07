@@ -1101,47 +1101,6 @@ void UIDisplay::parse(char *txt,bool ram)
                 }
                 break;
             }
-
-            case 'M':
-            {
-                if(c2=='X' && col<MAX_COLS)                                                            // %MX : Motorcurrent X
-                {
-                    addFloat(Printer::motorCurrent[X_AXIS]/63.0f,1,2);  //(126 = ~2A) *2.0f/126.0f
-                    if(col<MAX_COLS) printCols[col++]='A';
-                    if(col<MAX_COLS) printCols[col++]=' ';
-                    addInt((int)Printer::motorCurrent[X_AXIS],3);
-                }
-                else if(c2=='Y' && col<MAX_COLS)                                                       // %MY : Motorcurrent Y
-                {
-                    addFloat(Printer::motorCurrent[Y_AXIS]/63.0f,1,2);  //(126 = ~2A) *2.0f/126.0f
-                    if(col<MAX_COLS) printCols[col++]='A';
-                    if(col<MAX_COLS) printCols[col++]=' ';
-                    addInt((int)Printer::motorCurrent[Y_AXIS],3);
-                }
-                else if(c2=='Z')                                                                       // %MZ : Motorcurrent Z
-                {
-                    addFloat(Printer::motorCurrent[Z_AXIS]/63.0f,1,2);  //(126 = ~2A) *2.0f/126.0f
-                    if(col<MAX_COLS) printCols[col++]='A';
-                    if(col<MAX_COLS) printCols[col++]=' ';
-                    addInt((int)Printer::motorCurrent[Z_AXIS],3);
-                }
-                else if(c2=='0')                                                                       // %M0 : Motorcurrent T0
-                {
-                    addFloat(Printer::motorCurrent[E_AXIS]/63.0f,1,2);  //(126 = ~2A) *2.0f/126.0f
-                    if(col<MAX_COLS) printCols[col++]='A';
-                    if(col<MAX_COLS) printCols[col++]=' ';
-                    addInt((int)Printer::motorCurrent[E_AXIS],3);
-                }
-                else if(c2=='1')                                                                       // %M1 : Motorcurrent T1
-                {
-                    addFloat(Printer::motorCurrent[E_AXIS+1]/63.0f,1,2);  //(126 = ~2A) *2.0f/126.0f
-                    if(col<MAX_COLS) printCols[col++]='A';
-                    if(col<MAX_COLS) printCols[col++]=' ';
-                    addInt((int)Printer::motorCurrent[E_AXIS+1],3);
-                }
-                break;
-            }
-
             case 'o':
             {
                 if(c2=='s')                                                                             // %os : Status message
@@ -1414,57 +1373,15 @@ void UIDisplay::parse(char *txt,bool ram)
                 }
                 else if(c2=='m')                                                                        // %Xm : PID drive min
                 {
-                    if(uid.menuLevel == 4 && uid.menuPos[uid.menuLevel-1] < NUM_TEMPERATURE_LOOPS){
-                        addInt(-1*tempController[uid.menuPos[uid.menuLevel-1]]->pidDriveMin,3); 
-                    }else{
-                        addInt(Extruder::current->tempControl.pidDriveMin,3);
-                    }
+                    addInt(Extruder::current->tempControl.pidDriveMin,3);
                 }
                 else if(c2=='M')                                                                        // %XM : PID drive max
                 {
-                    if(uid.menuLevel == 4 && uid.menuPos[uid.menuLevel-1] < NUM_TEMPERATURE_LOOPS){
-                        addInt(tempController[uid.menuPos[uid.menuLevel-1]]->pidDriveMax,3); 
-                    }else{
-                        addInt(Extruder::current->tempControl.pidDriveMax,3);
-                    }
+                    addInt(Extruder::current->tempControl.pidDriveMax,3);
                 }
                 else if(c2=='D')                                                                        // %XD : PID max
                 {
-                    if(uid.menuLevel == 4 && uid.menuPos[uid.menuLevel-1] < NUM_TEMPERATURE_LOOPS){
-                        addInt(tempController[uid.menuPos[uid.menuLevel-1]]->pidMax*100/255,3); 
-                    }else{
-                        addInt(Extruder::current->tempControl.pidMax*100/255,3);
-                    }
-                }
-                else if(c2=='S')                                                                        // %XS : Temperature Sensor
-                {
-                    if(uid.menuLevel == 4 && uid.menuPos[uid.menuLevel-1] < NUM_TEMPERATURE_LOOPS){
-                        addInt(tempController[uid.menuPos[uid.menuLevel-1]]->sensorType,2); //mit type 100 wärens 3 zeichen, aber das kommt in praxis nicht vor. 
-                        switch(tempController[uid.menuPos[uid.menuLevel-1]]->sensorType){
-                            case 1: {
-                                addStringP( PSTR(UI_TEXT_SENSOR_1) );
-                                break;
-                            }
-                            case 3: {
-                                addStringP( PSTR(UI_TEXT_SENSOR_3) );
-                                break;
-                            }
-                            case 4: {
-                                addStringP( PSTR(UI_TEXT_SENSOR_4) );
-                                break;
-                            }
-                            case 8: {
-                                addStringP( PSTR(UI_TEXT_SENSOR_8) );
-                                break;
-                            }
-                            case 14: {
-                                addStringP( PSTR(UI_TEXT_SENSOR_14) );
-                                break;
-                            }
-                        }
-                    }else{
-                        addInt(Extruder::current->tempControl.sensorType,3);
-                    }
+                    addInt(Extruder::current->tempControl.pidMax,3);
                 }
 
                 else if(c2=='w')                                                                        // %Xw : Extruder watch period in seconds
@@ -1496,7 +1413,7 @@ void UIDisplay::parse(char *txt,bool ram)
                         addStringP(PSTR(UI_TEXT_STRING_HM_BANGBANG));
                 }
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
                 else if(c2=='a')
                 {
@@ -1507,14 +1424,6 @@ void UIDisplay::parse(char *txt,bool ram)
                 else if(c2=='l')                                                                        // %Xl : Advance L value
                 {
                     addFloat(Extruder::current->advanceL,3,0);
-                }
-                else if(c2=='b')                                                                        // %Xb : E0 Advance L value
-                {
-                    addFloat(extruder[0].advanceL,3,0);
-                }
-                else if(c2=='c')                                                                        // %Xc : E1 Advance L value
-                {
-                    addFloat(extruder[1].advanceL,3,0);
                 }
 #endif // USE_ADVANCE
 
@@ -1659,11 +1568,10 @@ void UIDisplay::parse(char *txt,bool ram)
             }
             case 'S':
             {
-                if(c2=='0')      addFloat(extruder[0].stepsPerMM,4,0);                                                // %S0 : Steps per mm extruder0
-                else if(c2=='1') addFloat(extruder[1].stepsPerMM,4,0);                                                // %S1 : Steps per mm extruder1
-                else if(c2=='e') addFloat(Extruder::current->stepsPerMM,3,1);                                         // %Se : Steps per mm current extruder
+                if(c2=='e') addFloat(Extruder::current->stepsPerMM,3,1);                                              // %Se : Steps per mm current extruder
                 else if(c2=='z') addFloat(g_nManualSteps[Z_AXIS] * Printer::invAxisStepsPerMM[Z_AXIS] * 1000,4,0);    // %Sz : Mikrometer per Z-Single_Step (Z_Axis)
                 else if(c2=='M' && col<MAX_COLS) if(g_ZMatrixChangedInRam) printCols[col++]='*';                      // %SM : Matrix has changed in Ram and is ready to Save. -> *)
+
                 break;
             }
             case 'p':
@@ -1888,7 +1796,7 @@ void UIDisplay::parse(char *txt,bool ram)
                     }
                     else if ( mode == OPERATING_MODE_MILL )
                     {
-                        //addStringP( PSTR( "" )); //TODO: Nibbels: Ist leerer string nötig?? Glaube nicht.
+                        addStringP( PSTR( "" )); //TODO: Nibbels: Ist leerer string nötig?? Glaube nicht.
                     }
 #endif // FEATURE_SERVICE_INTERVAL
                 }
@@ -1912,7 +1820,7 @@ void UIDisplay::parse(char *txt,bool ram)
                     }
                     else if ( mode == OPERATING_MODE_MILL )
                     {
-                        //addStringP( PSTR( "" )); //TODO: Nibbels: Ist leerer string nötig?? Glaube nicht.
+                        addStringP( PSTR( "" )); //TODO: Nibbels: Ist leerer string nötig?? Glaube nicht.
                     }
 #endif // FEATURE_SERVICE_INTERVAL
                 }
@@ -1995,7 +1903,7 @@ void UIDisplay::parse(char *txt,bool ram)
                     }
                     else if ( mode == OPERATING_MODE_MILL )
                     {
-                        //addStringP( PSTR( "" )); //TODO: Nibbels: Ist leerer string nötig?? Glaube nicht.
+                        addStringP( PSTR( "" )); //TODO: Nibbels: Ist leerer string nötig?? Glaube nicht.
                     }
                 }
                 else if(c2=='8')                                                                        // Shows printed filament
@@ -2017,7 +1925,7 @@ void UIDisplay::parse(char *txt,bool ram)
                     }
                     else if ( mode == OPERATING_MODE_MILL )
                     {
-                        //addStringP( PSTR( "" )); //TODO: Nibbels: Ist leerer string nötig?? Glaube nicht.
+                        addStringP( PSTR( "" )); //TODO: Nibbels: Ist leerer string nötig?? Glaube nicht.
                     }
                 }
                 break;
@@ -3167,7 +3075,7 @@ void UIDisplay::nextPreviousAction(int8_t next)
             extruder[1].xOffset = int32_t(fTemp * Printer::axisStepsPerMM[X_AXIS]);
 
 #if FEATURE_AUTOMATIC_EEPROM_UPDATE
-            HAL::eprSetFloat(EEPROM::getExtruderOffset(1)+EPR_EXTRUDER_X_OFFSET,fTemp);
+            HAL::eprSetFloat(EEPROM_EXTRUDER_LENGTH+EEPROM_EXTRUDER_OFFSET+EPR_EXTRUDER_X_OFFSET,fTemp);
             EEPROM::updateChecksum();
 #endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
 
@@ -3180,7 +3088,7 @@ void UIDisplay::nextPreviousAction(int8_t next)
             extruder[1].yOffset = int32_t(fTemp * Printer::axisStepsPerMM[Y_AXIS]);
 
 #if FEATURE_AUTOMATIC_EEPROM_UPDATE
-            HAL::eprSetFloat(EEPROM::getExtruderOffset(1)+EPR_EXTRUDER_Y_OFFSET,fTemp);
+            HAL::eprSetFloat(EEPROM_EXTRUDER_LENGTH+EEPROM_EXTRUDER_OFFSET+EPR_EXTRUDER_Y_OFFSET,fTemp);
             EEPROM::updateChecksum();
 #endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
 
@@ -3189,20 +3097,21 @@ void UIDisplay::nextPreviousAction(int8_t next)
         case UI_ACTION_EXTRUDER_OFFSET_Z:
         {
             //Das hier ist nur dazu gedacht, um eine Tip-Down-Nozzle auf per ToolChange auf die Korrekte Höhe zu justieren.
-            float   fTemp = extruder[1].zOffset * Printer::invAxisStepsPerMM[Z_AXIS]; //mm negativ
+            float   fTemp = extruder[1].zOffset * Printer::invAxisStepsPerMM[Z_AXIS];
             INCREMENT_MIN_MAX(fTemp,0.025,-2,0);
-            extruder[1].zOffset = int32_t(fTemp * Printer::axisStepsPerMM[Z_AXIS]); //wieder zu steps negativ
+            extruder[1].zOffset = int32_t(fTemp * Printer::axisStepsPerMM[Z_AXIS]);
 
 #if FEATURE_AUTOMATIC_EEPROM_UPDATE
-            HAL::eprSetFloat(EEPROM::getExtruderOffset(1)+EPR_EXTRUDER_Z_OFFSET,fTemp); //mm negativ
+            HAL::eprSetFloat(EEPROM_EXTRUDER_LENGTH+EEPROM_EXTRUDER_OFFSET+EPR_EXTRUDER_Z_OFFSET,fTemp);
             EEPROM::updateChecksum();
 #endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
 
             if(extruder[1].id == Extruder::current->id){
-                Printer::extruderOffset[Z_AXIS] = -Extruder::current->zOffset*Printer::invAxisStepsPerMM[Z_AXIS]; //+mm positiv
+                Printer::extruderOffset[Z_AXIS] = -Extruder::current->zOffset*Printer::invAxisStepsPerMM[Z_AXIS];
                 if(Printer::areAxisHomed()) Printer::moveToReal(IGNORE_COORDINATE,IGNORE_COORDINATE,IGNORE_COORDINATE,IGNORE_COORDINATE,IGNORE_COORDINATE);
             }
             break;
+            //break;
         }
 #endif // NUM_EXTRUDER>1
 
@@ -3340,7 +3249,7 @@ void UIDisplay::nextPreviousAction(int8_t next)
         }
         case UI_ACTION_HOMING_FEEDRATE_X:
         {
-            INCREMENT_MIN_MAX(Printer::homingFeedrate[X_AXIS],5,5,1000);
+            INCREMENT_MIN_MAX(Printer::homingFeedrate[X_AXIS],1,5,1000);
 
 #if FEATURE_AUTOMATIC_EEPROM_UPDATE
 #if FEATURE_MILLING_MODE
@@ -3362,7 +3271,7 @@ void UIDisplay::nextPreviousAction(int8_t next)
         }
         case UI_ACTION_HOMING_FEEDRATE_Y:
         {
-            INCREMENT_MIN_MAX(Printer::homingFeedrate[Y_AXIS],5,5,1000);
+            INCREMENT_MIN_MAX(Printer::homingFeedrate[Y_AXIS],1,5,1000);
 
 #if FEATURE_AUTOMATIC_EEPROM_UPDATE
 #if FEATURE_MILLING_MODE
@@ -3384,7 +3293,7 @@ void UIDisplay::nextPreviousAction(int8_t next)
         }
         case UI_ACTION_HOMING_FEEDRATE_Z:
         {
-            INCREMENT_MIN_MAX(Printer::homingFeedrate[Z_AXIS],5,5,1000);
+            INCREMENT_MIN_MAX(Printer::homingFeedrate[Z_AXIS],1,1,1000);
 
 #if FEATURE_AUTOMATIC_EEPROM_UPDATE
 #if FEATURE_MILLING_MODE
@@ -3406,7 +3315,7 @@ void UIDisplay::nextPreviousAction(int8_t next)
         }
         case UI_ACTION_MAX_FEEDRATE_X:
         {
-            INCREMENT_MIN_MAX(Printer::maxFeedrate[X_AXIS],5,1,1000);
+            INCREMENT_MIN_MAX(Printer::maxFeedrate[X_AXIS],1,1,1000);
 
 #if FEATURE_AUTOMATIC_EEPROM_UPDATE
             HAL::eprSetFloat(EPR_X_MAX_FEEDRATE,Printer::maxFeedrate[X_AXIS]);
@@ -3417,7 +3326,7 @@ void UIDisplay::nextPreviousAction(int8_t next)
         }
         case UI_ACTION_MAX_FEEDRATE_Y:
         {
-            INCREMENT_MIN_MAX(Printer::maxFeedrate[Y_AXIS],5,1,1000);
+            INCREMENT_MIN_MAX(Printer::maxFeedrate[Y_AXIS],1,1,1000);
 
 #if FEATURE_AUTOMATIC_EEPROM_UPDATE
         HAL::eprSetFloat(EPR_Y_MAX_FEEDRATE,Printer::maxFeedrate[Y_AXIS]);
@@ -3428,7 +3337,7 @@ void UIDisplay::nextPreviousAction(int8_t next)
         }
         case UI_ACTION_MAX_FEEDRATE_Z:
         {
-            INCREMENT_MIN_MAX(Printer::maxFeedrate[Z_AXIS],5,1,1000);
+            INCREMENT_MIN_MAX(Printer::maxFeedrate[Z_AXIS],1,1,1000);
 
 #if FEATURE_AUTOMATIC_EEPROM_UPDATE
             HAL::eprSetFloat(EPR_Z_MAX_FEEDRATE,Printer::maxFeedrate[Z_AXIS]);
@@ -3514,51 +3423,6 @@ void UIDisplay::nextPreviousAction(int8_t next)
             break;
         }
 #endif // FEATURE_RGB_LIGHT_EFFECTS
-        case UI_ACTION_EXTR_STEPS_E0:
-        {
-            INCREMENT_MIN_MAX(extruder[0].stepsPerMM,1,1,9999);
-            if(0 == Extruder::current->id) Extruder::selectExtruderById(Extruder::current->id); //übernehmen der werte
-
-#if FEATURE_AUTOMATIC_EEPROM_UPDATE
-            HAL::eprSetFloat(EEPROM::getExtruderOffset(0)+EPR_EXTRUDER_STEPS_PER_MM,extruder[0].stepsPerMM);
-            EEPROM::updateChecksum();
-#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
-            break;
-        }
-#if NUM_EXTRUDER > 1
-        case UI_ACTION_EXTR_STEPS_E1:
-        {
-            INCREMENT_MIN_MAX(extruder[1].stepsPerMM,1,1,9999);
-            if(1 == Extruder::current->id) Extruder::selectExtruderById(Extruder::current->id); //übernehmen der werte
-
-#if FEATURE_AUTOMATIC_EEPROM_UPDATE
-            HAL::eprSetFloat(EEPROM::getExtruderOffset(1)+EPR_EXTRUDER_STEPS_PER_MM,extruder[1].stepsPerMM);
-            EEPROM::updateChecksum();
-#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
-            break;
-        }
-#endif //NUM_EXTRUDER > 1
-
-        case UI_ACTION_ADVANCE_L_E0:
-        {
-            INCREMENT_MIN_MAX(extruder[0].advanceL,1,0,60); //Nibbels TODO gute Werte zulassen? Ist Step 1 ok?
-#if FEATURE_AUTOMATIC_EEPROM_UPDATE
-            HAL::eprSetFloat(EEPROM::getExtruderOffset(0)+EPR_EXTRUDER_ADVANCE_L,extruder[0].advanceL);
-            EEPROM::updateChecksum();
-#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
-            break;
-        }
-#if NUM_EXTRUDER > 1
-        case UI_ACTION_ADVANCE_L_E1:
-        {
-            INCREMENT_MIN_MAX(extruder[1].advanceL,1,0,60); //Nibbels TODO gute Werte zulassen? Ist Step 1 ok?
-#if FEATURE_AUTOMATIC_EEPROM_UPDATE
-            HAL::eprSetFloat(EEPROM::getExtruderOffset(1)+EPR_EXTRUDER_ADVANCE_L,extruder[1].advanceL);
-            EEPROM::updateChecksum();
-#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
-            break;
-        }
-#endif //NUM_EXTRUDER > 1
 
         case UI_ACTION_EXTR_STEPS:
         {
@@ -3656,7 +3520,7 @@ void UIDisplay::nextPreviousAction(int8_t next)
         }
 #endif // RETRACT_DURING_HEATUP
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
         case UI_ACTION_ADVANCE_K:
         {
@@ -3780,162 +3644,6 @@ void UIDisplay::nextPreviousAction(int8_t next)
         }
 #endif //FEATURE_EMERGENCY_STOP_ALL
 
-        case UI_ACTION_RESTORE_DEFAULTS:
-        {
-            INCREMENT_MIN_MAX(g_nYesNo,1,0,1);
-            break;
-        }
-
-        case UI_ACTION_CHOOSE_CLASSICPID:
-        case UI_ACTION_CHOOSE_LESSERINTEGRAL:
-        case UI_ACTION_CHOOSE_SOME:
-        case UI_ACTION_CHOOSE_NO:
-        {
-            INCREMENT_MIN_MAX(g_nYesNo,1,0,1);
-            break;
-        }
-        case UI_ACTION_CHOOSE_DMIN:
-        {
-            if(uid.menuLevel == 4){ //identifikation des temperaturzyklus anhand der position im menü. Das ist nicht 100% sauber, aber funktioniert.
-                uint8_t heater = uid.menuPos[uid.menuLevel-1]; //0..1..2 mit zwei extrudern und bett. passt zum autotunesystem, weil UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT
-                if(heater < NUM_TEMPERATURE_LOOPS) {
-                    int drive = tempController[heater]->pidDriveMin;
-                    INCREMENT_MIN_MAX(drive,1,0,255);
-                    tempController[heater]->pidDriveMin = drive;
-#if FEATURE_AUTOMATIC_EEPROM_UPDATE
-                    if(UI_MENU_PID_BED_COUNT > 0 && UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT - 1 == heater){ 
-                        //Das ist das Heizbett
-                        HAL::eprSetByte( EPR_BED_DRIVE_MIN, (uint8_t)drive  );
-                        EEPROM::updateChecksum();
-                    }else{
-                        //Extruder
-                        if(heater <= NUM_EXTRUDER-1){ //paranoid doublecheck
-                          HAL::eprSetByte( EEPROM::getExtruderOffset(heater)+EPR_EXTRUDER_DRIVE_MIN, (uint8_t)drive  );
-                          EEPROM::updateChecksum();
-                        }
-                    }
-#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
-                }
-            }
-            break;
-        }
-        case UI_ACTION_CHOOSE_DMAX:
-        {
-            if(uid.menuLevel == 4){ //identifikation des temperaturzyklus anhand der position im menü. Das ist nicht 100% sauber, aber funktioniert.
-                uint8_t heater = uid.menuPos[uid.menuLevel-1]; //0..1..2 mit zwei extrudern und bett. passt zum autotunesystem, weil UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT
-                if(heater < NUM_TEMPERATURE_LOOPS) {
-                    int drive = tempController[heater]->pidDriveMax;
-                    INCREMENT_MIN_MAX(drive,1,0,255);
-                    tempController[heater]->pidDriveMax = drive;
-#if FEATURE_AUTOMATIC_EEPROM_UPDATE
-                    if(UI_MENU_PID_BED_COUNT > 0 && UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT - 1 == heater){ 
-                        //Das ist das Heizbett
-                        HAL::eprSetByte( EPR_BED_DRIVE_MAX, (uint8_t)drive  );
-                        EEPROM::updateChecksum();
-                    }else{
-                        //Extruder
-                        if(heater <= NUM_EXTRUDER-1){ //paranoid doublecheck
-                          HAL::eprSetByte( EEPROM::getExtruderOffset(heater)+EPR_EXTRUDER_DRIVE_MAX, (uint8_t)drive  );
-                          EEPROM::updateChecksum();
-                        }
-                    }
-#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
-                }
-            }
-            break;
-        }
-        case UI_ACTION_CHOOSE_PIDMAX:
-        {
-            if(uid.menuLevel == 4){ //identifikation des temperaturzyklus anhand der position im menü. Das ist nicht 100% sauber, aber funktioniert.
-                uint8_t heater = uid.menuPos[uid.menuLevel-1]; //0..1..2 mit zwei extrudern und bett. passt zum autotunesystem, weil UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT
-                if(heater < NUM_TEMPERATURE_LOOPS) {
-                    int drive = tempController[heater]->pidMax;
-                    INCREMENT_MIN_MAX(drive,1,0,255);
-                    tempController[heater]->pidMax = drive;
-#if FEATURE_AUTOMATIC_EEPROM_UPDATE
-                    if(UI_MENU_PID_BED_COUNT > 0 && UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT - 1 == heater){ 
-                        //Das ist das Heizbett
-                        HAL::eprSetByte( EPR_BED_PID_MAX, (uint8_t)drive  );
-                        EEPROM::updateChecksum();
-                    }else{
-                        //Extruder
-                        if(heater <= NUM_EXTRUDER-1){ //paranoid doublecheck
-                          HAL::eprSetByte( EEPROM::getExtruderOffset(heater)+EPR_EXTRUDER_PID_MAX, (uint8_t)drive  );
-                          EEPROM::updateChecksum();
-                        }
-                    }
-#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
-                }
-            }
-            break;
-        }
-        case UI_ACTION_CHOOSE_SENSOR:
-        {
-            if(uid.menuLevel == 4){ //identifikation des temperaturzyklus anhand der position im menü. Das ist nicht 100% sauber, aber funktioniert.
-                uint8_t heater = uid.menuPos[uid.menuLevel-1]; //0..1..2 mit zwei extrudern und bett. passt zum autotunesystem, weil UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT
-                if(heater < NUM_TEMPERATURE_LOOPS) {
-                    int drive = tempController[heater]->sensorType;
-#if FEATURE_AUTOMATIC_EEPROM_UPDATE
-                    if(UI_MENU_PID_BED_COUNT > 0 && UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT - 1 == heater){ 
-                        //Das ist das Heizbett
-                        switch(drive){
-                          case 3: { drive = 4; break; } //4 ist der 10K Thermistor vom hersteller der matten (? rf1k_mhj11)
-                          default: { drive = 3; break; }
-                        }
-                        tempController[heater]->sensorType = drive;
-                        HAL::eprSetByte( EPR_RF_HEATED_BED_SENSOR_TYPE, (uint8_t)drive  );
-                        EEPROM::updateChecksum();
-                    }else{
-                        //Extruder
-                        if(increment > 0){
-                            switch(drive){
-                              case 3: { drive = 8; break; }
-                              case 8: { drive = 14; break; } //add more sensors for menu-tweaking here, those are the most common for RFx000
-                              case 14: { drive = 1; break; }
-                              default: { drive = 3; break; }
-                            }
-                        }else{ //== 0 gibts nicht, soweit ich weiß
-                            switch(drive){
-                              case 3: { drive = 1; break; }
-                              case 1: { drive = 14; break; }
-                              case 14: { drive = 8; break; } //add more sensors for menu-tweaking here, those are the most common for RFx000
-                              default: { drive = 3; break; }
-                            }
-                        }
-                        tempController[heater]->sensorType = drive;
-                        if(heater <= NUM_EXTRUDER-1){ //paranoid doublecheck
-                          HAL::eprSetByte( EEPROM::getExtruderOffset(heater)+EPR_EXTRUDER_SENSOR_TYPE, (uint8_t)drive  );
-                          EEPROM::updateChecksum();
-                        }
-                    }
-#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
-                }
-            }
-            break;
-        }
-        case UI_ACTION_CHOOSE_MOTOR_X:
-        case UI_ACTION_CHOOSE_MOTOR_Y:
-        case UI_ACTION_CHOOSE_MOTOR_Z:
-        case UI_ACTION_CHOOSE_MOTOR_E0:
-        case UI_ACTION_CHOOSE_MOTOR_E1:
-        {
-            uint8_t steppernr = uid.menuPos[uid.menuLevel];
-            if(steppernr == 6) steppernr = 4; //das ist etwas stümperhaft, aber ich brauche die Zeilennummer um auszuwählen und die Einstellungen für die Extruderstepper gehören drüber, also muss Extruder 2 zwei Zeilen runter...
-            if(steppernr < 5) { // aktuell gibts nur 5
-                int drive = Printer::motorCurrent[steppernr];
-                const short uMotorCurrentMax[] = MOTOR_CURRENT_MAX;
-                INCREMENT_MIN_MAX(drive,1,MOTOR_CURRENT_MIN,uMotorCurrentMax[steppernr]); //von 40 bis maximal das was in der config steht.
-                Printer::motorCurrent[steppernr] = drive;
-#if FEATURE_AUTOMATIC_EEPROM_UPDATE
-                HAL::eprSetByte( EPR_RF_MOTOR_CURRENT+steppernr, (uint8_t)drive  );
-                EEPROM::updateChecksum();
-#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
-                setMotorCurrent( steppernr+1, drive );
-                Com::printF( PSTR( "Stepper" ), steppernr+1 );
-                Com::printFLN( PSTR( " = " ), drive );
-            }
-            break;
-        }
     }
 
 #if FEATURE_MILLING_MODE
@@ -3995,63 +3703,6 @@ void UIDisplay::finishAction(int action)
             sd.abortPrint();
             break;
         }
-
-        case UI_ACTION_RESTORE_DEFAULTS:
-            {
-            if( g_nYesNo != 1 )
-            {
-                   // continue only in case the user has chosen "Yes"
-                   break;
-            }
-            EEPROM::restoreEEPROMSettingsFromConfiguration();
-
-#if FEATURE_AUTOMATIC_EEPROM_UPDATE
-            EEPROM::storeDataIntoEEPROM(false);
-#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
-
-            EEPROM::initializeAllOperatingModes();
-            uid.menuLevel = 0;
-            UI_STATUS( UI_TEXT_RESTORE_DEFAULTS );
-            break;
-        }
-
-        case UI_ACTION_CHOOSE_CLASSICPID:
-        case UI_ACTION_CHOOSE_LESSERINTEGRAL:
-        case UI_ACTION_CHOOSE_SOME:
-        case UI_ACTION_CHOOSE_NO:
-        {
-            if( g_nYesNo != 1 )
-            {
-                // continue only in case the user has chosen "Yes"
-                break;
-            }
-            unsigned char heater = uid.menuPos[uid.menuLevel-2]; //0..1..2 mit zwei extrudern und bett. passt zum autotunesystem, weil UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT
-            int method = uid.menuPos[uid.menuLevel-1]; //0..1..2..3..4..5 passt zum J-Listing des M303
-            /*
-             Line 1059: #define PRECISE_HEAT_BED_SCAN_BED_TEMP_PLA          60                                                                  // [°C]
-             Line 1062: #define PRECISE_HEAT_BED_SCAN_EXTRUDER_TEMP_PLA     230                                                                 // [°C]
-            */
-#if NUM_TEMPERATURE_LOOPS > 0
-            int temperature = PRECISE_HEAT_BED_SCAN_EXTRUDER_TEMP_PLA;
-            int cycles = 10;
-            if(UI_MENU_PID_EXT0_COUNT + UI_MENU_PID_EXT1_COUNT + UI_MENU_PID_BED_COUNT - 1 == heater && UI_MENU_PID_BED_COUNT > 0){ 
-                //Das ist das Heizbett und kein Extruder
-                temperature = PRECISE_HEAT_BED_SCAN_BED_TEMP_PLA; //Bett nicht so hoch testen, wie Extruder.
-                cycles = 16; //Bett ist erfahrungsgemäß viel träger. Mehr Zyklen erhöhen die Genauigkeit des Ergebnis.
-            }
-            bool writeeeprom = true;
-            if(heater >= NUM_TEMPERATURE_LOOPS) heater = NUM_TEMPERATURE_LOOPS -1;
-            //show menu and message to user: He cant do anything until autotune is over.
-            uid.menuLevel = 0; 
-            uid.menuPos[0] = 3; //show temps
-            UI_STATUS_UPD(UI_TEXT_PID);
-            tempController[heater]->autotunePID(temperature,heater,cycles,writeeeprom, method);  
-#else
-            Com::printFLN( PSTR( "PID Autotune Error: Noo Temperature-Loops defined!??" ) );
-#endif // NUM_TEMPERATURE_LOOPS > 0
-            break;
-        }
-
     }
 
 } // finishAction
@@ -4064,11 +3715,12 @@ void UIDisplay::executeAction(int action)
     if( Printer::blockAll )
     {
         if( action == UI_ACTION_OK || action == UI_ACTION_RF_CONTINUE ){
-            Com::printFLN( PSTR( "Restart after Emergency-Stop" ) );
+			Com::printFLN( PSTR( "Restart after Emergency-Stop" ) );
             HAL::delayMilliseconds( 100 );
             Commands::emergencyStop();
-        }
-        // do not allow any user inputs when we have been blocked
+		}
+		 
+		 // do not allow any user inputs when we have been blocked
         return;
     }
 
@@ -5024,6 +4676,18 @@ void UIDisplay::executeAction(int action)
                 break;
             }
 #endif // MAX_HARDWARE_ENDSTOP_Z
+
+            case UI_ACTION_RESTORE_DEFAULTS:
+            {
+                EEPROM::restoreEEPROMSettingsFromConfiguration();
+
+#if FEATURE_AUTOMATIC_EEPROM_UPDATE
+                EEPROM::storeDataIntoEEPROM(false);
+#endif // FEATURE_AUTOMATIC_EEPROM_UPDATE
+
+                EEPROM::initializeAllOperatingModes();
+                break;
+            }
 
 #ifdef DEBUG_PRINT
             case UI_ACTION_WRITE_DEBUG:

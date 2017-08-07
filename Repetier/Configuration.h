@@ -119,6 +119,9 @@ IMPORTANT: With mode <>0 some changes in Configuration.h are not set any more, a
 /** \brief Allows to change the amount of Z-Offset which is changed by a push of the Z-Up or Z-Down button ONLY within the Mod Menu Page 2 */
 #define Z_OFFSET_BUTTON_STEPS               5
 
+/** \brief Allows to change the Stepper Current to Silent Profile by G-Code (to a second Profile see MOTOR_CURRENT) */
+#define FEATURE_SILENT_MODE                 1                                                   // 1 = on, 0 = off 
+
 /** \brief The Firmwares disalowes movement before you at least: pressed a printers button, set a temperature, homed once 
 If you did not do this, a previous watchdog reset is assumed and fail-drive against some border without homing is blocked thatway. 
 This is a fix for repetier-server not knowing that the printer reset and still sending commands
@@ -129,6 +132,9 @@ XYZ_POSITION_BUTTON_DIRECTION = -1 : This fits to you if you want more intuitivi
 XYZ_POSITION_BUTTON_DIRECTION = 1 : This fits more if you want to stick to standard coordinates direction.
 */
 #define XYZ_POSITION_BUTTON_DIRECTION       1
+
+/** \brief Allows to cause an emergency stop via a 3-times push of the pause button */
+#define FEATURE_EMERGENCY_STOP_VIA_PAUSE    0                                                   // 1 = on, 0 = off
 
 /** \brief Enables/disables the emergency stop in case of too high pressure */
 #define FEATURE_EMERGENCY_STOP_ALL          1                                                   // 1 = on, 0 = off
@@ -332,10 +338,12 @@ usage or for seraching for memory induced errors. Switch it off for production, 
 
 /** \brief Specifies the time interval after the pausing of the print at which the extruder current is reduced */
 #define EXTRUDER_CURRENT_PAUSE_DELAY        5000                                                // [ms] or 0, in order to disable the lowering of the extruder current
-#endif // FEATURE_PAUSE_PRINTING
 
 /** \brief Specifies the extruder current which shall be use after pausing of the print and before continuing of the print */
 #define EXTRUDER_CURRENT_PAUSED             32                                                  // ~0.5A
+
+#endif // FEATURE_PAUSE_PRINTING
+
 
 // ##########################################################################################
 // ##   configuration of the park functionality

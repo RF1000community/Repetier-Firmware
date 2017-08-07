@@ -239,7 +239,6 @@ public:
     FSTRINGVAR(tEPRIGain)
     FSTRINGVAR(tEPRDGain)
     FSTRINGVAR(tEPRPIDMaxValue)
-    FSTRINGVAR(tEPRBedsensorType)
     FSTRINGVAR(tEPRsensorType)
     FSTRINGVAR(tEPRXOffset)
     FSTRINGVAR(tEPRYOffset)
@@ -281,14 +280,6 @@ public:
     FSTRINGVAR(tEPRPrinterEPR_RF_EmergencyStopAllMin)
     FSTRINGVAR(tEPRPrinterEPR_RF_EmergencyStopAllMax)
 #endif //FEATURE_EMERGENCY_STOP_ALL
-
-    FSTRINGVAR(tEPRPrinter_STEPPER_X)
-    FSTRINGVAR(tEPRPrinter_STEPPER_Y)
-    FSTRINGVAR(tEPRPrinter_STEPPER_Z)
-    FSTRINGVAR(tEPRPrinter_STEPPER_E0)
-#if NUM_EXTRUDER > 1
-    FSTRINGVAR(tEPRPrinter_STEPPER_E1)
-#endif //NUM_EXTRUDER > 1
 
 #endif // EEPROM_MODE==0
 

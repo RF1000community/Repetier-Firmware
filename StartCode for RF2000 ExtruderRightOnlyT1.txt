@@ -1,7 +1,18 @@
 ;--------------------------------------
 ; Start Code T1-only header
 ;--------------------------------------
+; Wähle Extruder Rechts -> Wirkt sich auch auf mhier's Z-Offset-Scan aus!
+T1
 
+;--------------------------------------
+; Silence Mode activation: This is since 1.37e -> Reduction of Amps on the Steppers to prevent Noise and to risks lost Steps.
+;--------------------------------------
+M3920 S1
+
+;--------------------------------------
+; Silence Mode activation: This is since 1.37e -> Reduction of Amps on the Steppers to prevent Noise and to risk lost Steps.
+;--------------------------------------
+;M3920 S1 ; activate Silent-Mode: See MOTOR_CURRENT and MOTOR_CURRENT_SILENT within configuration.
 ;M3121 P1 ; Boardlüfter RF2000 aus und ignore! -> Ich habe einen zweiten Lüfter verbaut der leise ist.
 
 ; Chiptuning
@@ -38,8 +49,6 @@ M109 S[first_layer_temperature_1] ; Extruder längen
 
 M400 ; Warten bis Idle
 
-; Wähle Extruder Rechts -> Wirkt sich auch auf mhier's Z-Offset-Scan aus! If you have some T1-Tipdown Hotend choose the right offset in Configuration->Z-Compensation->Extruder T1 Tipdown
-T1
 M3900 R1 ; Auto-Matrix-Leveling (- Z-Offsetscan an 7 Punkten mit Abstandsgewichtung: Das biegt ein verstelltes Heizbett gerade, behält aber die Welligkeit der alten Matrix.)
 
 M400 ; Warten bis Idle

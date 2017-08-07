@@ -121,7 +121,7 @@ extern volatile uint8   osAnalogInputPos; // Current sampling position
 extern volatile uint    osAnalogInputValues[ANALOG_INPUTS];
 extern uint8_t          pwm_pos[NUM_EXTRUDER+3]; // 0-NUM_EXTRUDER = Heater 0-NUM_EXTRUDER of extruder, NUM_EXTRUDER = Heated bed, NUM_EXTRUDER+1 Board fan, NUM_EXTRUDER+2 = Fan
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
 extern int              maxadv;
 #endif // ENABLE_QUADRATIC_ADVANCE

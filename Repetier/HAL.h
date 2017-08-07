@@ -56,10 +56,21 @@ All known arduino boards use 64. This value is needed for the extruder timing. *
 
 #include "fastio.h"
 
+
 #if FEATURE_WATCHDOG
 extern  unsigned char g_bPingWatchdog;
 extern  unsigned long g_uLastCommandLoop;
+/*
+extern unsigned long maT;
+extern unsigned long miT;
+extern unsigned long laT;
+extern unsigned long maCoLo;
+*/
 #endif // FEATURE_WATCHDOG
+
+// #define BEGIN_INTERRUPT_PROTECTED {uint8_t sreg=SREG;__asm volatile( "cli" ::: "memory" );
+// #define END_INTERRUPT_PROTECTED SREG=sreg;}
+// #define ESCAPE_INTERRUPT_PROTECTED SREG=sreg;
 
 class InterruptProtectedBlock
 {
@@ -107,13 +118,6 @@ public:
 #define I2C_WRITE                   0
 
 #define LIMIT_INTERVAL              ((F_CPU/40000)+1)
-
-#ifndef cbi
-  #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
-#endif
-#ifndef sbi
-  #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
-#endif
 
 typedef uint16_t    speed_t;
 typedef uint32_t    ticks_t;
@@ -821,9 +825,6 @@ public:
 #endif // FEATURE_SERVO && MOTHERBOARD == DEVICE_TYPE_RF1000
 
     static void analogStart();
-#if USE_ADVANCE
-    static void resetExtruderDirection();
-#endif // USE_ADVANCE
 protected:
 private:
 };

@@ -163,15 +163,17 @@ Der Sinn dieses Features ist, dass man Filamente und ihre Viskosität zu gegeben
  Das ist rotes PLA:
  ![ ](https://downfight.de/picproxy.php?url=http://image.prntscr.com/image/2a3253c930794afc81e4fa4d4b2a4261.png "PLA red")  
 
-## Konfigurierbarer Z-Notaus- und Notpause-Digits in Menü und EEPROM  
-Menü -> Configuration -> General  
+## FlüsterModus = SilentMode
+* M3920 Sb
+**S** = {0,1} = Flüstermodus an und abschalten
 
-## Konfigurierbarer Motorstrom im Menü und EEPROM  
-Menü -> Configuration -> Stepper  
+Diese Funktion kann nützlich sein wenn man eine, zu den von Conrad vorgegebenen Motorströmen, abweichende Einstellung definieren wollen, aber dieses Motorstromprofil aus diversen Gründen an und abschaltbar sein soll.
 
-## Konfigurierbare Temperatureinstellungen im Menü und EEPROM  
-Der PID-Autotune, die weiteren Regelparameter und der Sensortyp sind im Menü einstellbar.  
-Menü -> Configuration -> Temperatures -> Extruder0/Extruder1/Heizbett  
+**Warnung!** Werden zu niedrige Werte/Motorströme eingestellt, riskiert man Schrittverluste bei den Stepper-Motoren. Der Motor könnte in diesem Fall den Beschleunigungs-, Reibungs- und Fliehkräften nicht ausreichend Halte-Moment engegensetzen. Es werden und Pol-Schritte überspringen. Dies resultiert dann in (in X oder Y) verschobenen Layern. Tritt dieser Fehler auf, sollte man entweder die Beschleunigungen während des Druckens vermindern oder die Motorströme so weit anheben bis die Versetzungen verschwinden.
+
+Eine Verringerung der Motorströme, senkt die Steppermotorentemperatur und die Lautstärke der Motoren. Auch die gefühlte Tonhöhe kann sich ändern und der Drucker insgesamt oder teilweise angenehmer klingen.
+Solange die Z-Kompensation aktiv ist, sollte der Flüstermodus nicht aktiviert werden, da M3920 die Stepper kurz abschaltet und der Drucker seine Nullpunktjustierung verliert.
+Anschließend müssen alle Achsenursprünge/Homing neu gesucht werden, dann Z-Kompensation danach wieder angeschaltet werden. Wir empfehlen diesen MCODE, wenn nötig, ganz am Anfang des Startcodes einzubauen, vor G28 / M3001.
 
 ## Dual-Hotend TipDown Support (beta)
 * M3919 [S]mikrometer - Testfunktion für ein Herunterlass-Hotend beim rechten Hotend T1: Das rechte Hotend kann gefedert eingebaut werden. Wird das Hotend ausgewählt, wird das bett automatisch heruntergefahren, sodass es niedriger hängt wie das linke hotend, aber nicht mit dem Bett kollidiert. Der Ultimaker 3 macht das so beim rechten Hotend.
@@ -193,4 +195,4 @@ Es könnte z.B. die Temperatur in der Nähe der Hauptplatine, die Hitzeentwicklu
 [![ScreenShot](https://downfight.de/picproxy.php?url=http://image.prntscr.com/image/d7b7fade0c7343eeb67b680339478894.png)](http://youtu.be/iu9Nft7SXD8)
 
 ## !! 03.02.2017: An diesem Projekt wird kontinuierlich weitergearbeitet, spontane Änderungen sind jederzeit möglich.
-## !! 28.02.2017: Dieser Mod sollte sich, abgesehen von Arduino.cc 1.6.5r5 ebenfalls mit Arduino.cc Version >=1.8.3 compilieren lassen.
+## !! 28.02.2017: Dieser Mod sollte sich, abgesehen von Arduino.cc 1.6.5r5 ebenfalls mit Arduino.cc Version >=1.8.1 compilieren lassen.

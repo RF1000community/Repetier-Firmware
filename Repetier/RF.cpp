@@ -192,6 +192,10 @@ short            g_nZEmergencyStopAllMin  = EMERGENCY_STOP_DIGITS_MIN;
 short            g_nZEmergencyStopAllMax  = EMERGENCY_STOP_DIGITS_MAX;
 #endif //FEATURE_EMERGENCY_STOP_ALL
 
+#if FEATURE_SILENT_MODE
+char            g_nSilentMode               = 0;
+#endif // FEATURE_SILENT_MODE
+
 #if FEATURE_SENSIBLE_PRESSURE
 /* brief: This is for correcting too close Z at first layer, see FEATURE_SENSIBLE_PRESSURE // Idee Wessix, coded by Nibbels  */
 short           g_nSensiblePressureDigits   = 0; //init auf zahl bringt stand 1.37r2 nur was wenn zcompensation an. darum lesen aus eeprom oder setzen auf wert nur durch Mcode
@@ -6142,10 +6146,7 @@ void loopRF( void ) //wird so aufgerufen, dass es ein ~100ms takt sein sollte.
                     Com::printF( PSTR( ", Time = " ), uTime );
                     Com::printFLN( PSTR( ", Diff = " ), uTime - g_uPauseTime );
 */
-                    setExtruderCurrent( 0, EXTRUDER_CURRENT_PAUSED );
-#if NUM_EXTRUDER > 1
-                    setExtruderCurrent( 1, EXTRUDER_CURRENT_PAUSED );
-#endif //NUM_EXTRUDER > 1
+                    setExtruderCurrent( EXTRUDER_CURRENT_PAUSED );
                 }
                 g_uPauseTime = 0;
             }
@@ -6762,6 +6763,9 @@ void parkPrinter( void )
 #if FEATURE_PAUSE_PRINTING
 void pausePrint( void )
 {
+    //long  Temp;
+
+
     if( Printer::debugErrors() )
     {
         Com::printFLN( PSTR( "pausePrint()" ) );
@@ -6779,6 +6783,7 @@ void pausePrint( void )
                 {
                     Com::printFLN( PSTR( "pausePrint(): pause is not available at the moment because the home position is unknown" ) );
                 }
+
                 showError( (void*)ui_text_pause, (void*)ui_text_home_unknown );
                 return;
             }
@@ -6809,9 +6814,11 @@ void pausePrint( void )
             g_nContinueSteps[Y_AXIS] = 0;
             g_nContinueSteps[Z_AXIS] = 0;
 
+
 #if FEATURE_MILLING_MODE
             if( Printer::operatingMode == OPERATING_MODE_PRINT )
-            { // we do not process the extruder in case we are not in operating mode "print"
+            {
+                // we do not process the extruder in case we are not in operating mode "print"
 #endif // FEATURE_MILLING_MODE
                 if( g_nPauseSteps[E_AXIS] )
                 {
@@ -6834,13 +6841,12 @@ void pausePrint( void )
             return;
         }
 
-        //g_pauseStatus = PAUSE_STATUS_PAUSED; //Nibbels: Pausestatus ist hier in jedem Fall schon PAUSE_STATUS_PAUSED! Siehe Tasks in Queue.. und Whileschleife oben.
-        /*
+        g_pauseStatus = PAUSE_STATUS_PAUSED;
+
         Printer::stepperDirection[X_AXIS]   = 0;
         Printer::stepperDirection[Y_AXIS]   = 0;
         Printer::stepperDirection[Z_AXIS]   = 0;
         Extruder::current->stepperDirection = 0;
-        */
         return;
     }
 
@@ -6893,12 +6899,34 @@ void pausePrint( void )
         UI_STATUS( UI_TEXT_PAUSED );
         return;
     }
+
+#if FEATURE_EMERGENCY_STOP_VIA_PAUSE
+    if( g_pauseMode == PAUSE_MODE_PAUSED_AND_MOVED )
+    {
+        // in case the print is paused and the extruder is moved away already, we kill the printing
+        if( Printer::debugInfo() )
+        {
+            Com::printFLN( PSTR( "pausePrint(): emergency stop" ) );
+        }
+        HAL::delayMilliseconds( 100 );
+        Commands::emergencyStop();
+        return;
+    }
+#endif // FEATURE_EMERGENCY_STOP_VIA_PAUSE
+
     return;
+
 } // pausePrint
 
 
 void continuePrint( void )
 {
+    #if FEATURE_SILENT_MODE
+        const unsigned short    uMotorCurrent[] = MOTOR_CURRENT;
+        const unsigned short    uMotorCurrentSilent[] = MOTOR_CURRENT_SILENT;
+    #else
+        const unsigned short    uMotorCurrent[] = MOTOR_CURRENT;
+    #endif // FEATURE_SILENT_MODE   
     char                    nPrinting        = 0;
 
     if( g_pauseStatus == PAUSE_STATUS_PAUSED )
@@ -6928,10 +6956,15 @@ void continuePrint( void )
             if( nPrinting )
             {
                 // process the extruder only in case we are in mode "print"
-                setExtruderCurrent( 0, Printer::motorCurrent[E_AXIS] );
-#if NUM_EXTRUDER > 1
-                setExtruderCurrent( 1, Printer::motorCurrent[E_AXIS+1] );
-#endif //NUM_EXTRUDER > 1
+                #if FEATURE_SILENT_MODE     
+                    if(!g_nSilentMode){
+                        setExtruderCurrent( uMotorCurrent[E_AXIS] );
+                    }else{
+                        setExtruderCurrent( uMotorCurrentSilent[E_AXIS] );
+                    }
+                #else
+                    setExtruderCurrent( uMotorCurrent[E_AXIS] );
+                #endif // FEATURE_SILENT_MODE   
             }
 #endif // EXTRUDER_CURRENT_PAUSE_DELAY
 
@@ -6998,12 +7031,16 @@ void continuePrint( void )
             {
                 // process the extruder only in case we are in mode "print"
 #if EXTRUDER_CURRENT_PAUSE_DELAY
-
-                setExtruderCurrent( 0, Printer::motorCurrent[E_AXIS] );
-#if NUM_EXTRUDER > 1
-                setExtruderCurrent( 1, Printer::motorCurrent[E_AXIS+1] );
-#endif //NUM_EXTRUDER > 1
-
+                //setExtruderCurrent( uMotorCurrent[E_AXIS] );
+                #if FEATURE_SILENT_MODE     
+                    if(!g_nSilentMode){
+                        setExtruderCurrent( uMotorCurrent[E_AXIS] );
+                    }else{
+                        setExtruderCurrent( uMotorCurrentSilent[E_AXIS] );
+                    }
+                #else
+                    setExtruderCurrent( uMotorCurrent[E_AXIS] );
+                #endif // FEATURE_SILENT_MODE
 #endif // EXTRUDER_CURRENT_PAUSE_DELAY
 
                 InterruptProtectedBlock noInts; //HAL::forbidInterrupts();
@@ -7297,10 +7334,8 @@ void waitUntilContinue( void )
 #endif // FEATURE_PAUSE_PRINTING
 
 
-void setExtruderCurrent( uint8_t nr, uint8_t current )
+void setExtruderCurrent( unsigned short level )
 {
-    if(nr > NUM_EXTRUDER - 1) nr = NUM_EXTRUDER - 1; //0 ist T0, 1 ist T1
-
 #if FEATURE_MILLING_MODE
     if( Printer::operatingMode != OPERATING_MODE_PRINT )
     {
@@ -7310,13 +7345,11 @@ void setExtruderCurrent( uint8_t nr, uint8_t current )
 #endif // FEATURE_MILLING_MODE
 
     // set the current for the extruder motor
-
-    setMotorCurrent( 1+E_AXIS+nr , current ); //das ist Extruder-ID+1, also nicht [0,1,2] -> Extruder 4 = [3], sondern [4]. Extruder5 wäre [5]
+    setMotorCurrent( 4, level );
 
     if( Printer::debugInfo() )
     {
-        Com::printF( PSTR( "Extruder" ), (short)nr );
-        Com::printFLN( PSTR( " = " ), (uint32_t)current );
+        Com::printFLN( PSTR( "setExtruderCurrent(): new extruder current level: " ), (uint32_t)level );
     }
     return;
 
@@ -9387,63 +9420,23 @@ void processCommand( GCode* pCommand )
                             Com::printF( PSTR( "nCPS X;" ),   Printer::queuePositionCurrentSteps[X_AXIS] );
                             Com::printF( PSTR( ";" ),         Printer::queuePositionCurrentSteps[X_AXIS] / Printer::axisStepsPerMM[X_AXIS] );
                             Com::printF( PSTR( "; nCPS Y;" ), Printer::queuePositionCurrentSteps[Y_AXIS] );
-                            Com::printFLN( PSTR( ";" ),       Printer::queuePositionCurrentSteps[Y_AXIS] / Printer::axisStepsPerMM[Y_AXIS] );
-
+                            Com::printF( PSTR( ";" ),         Printer::queuePositionCurrentSteps[Y_AXIS] / Printer::axisStepsPerMM[Y_AXIS] );
                             Com::printF( PSTR( "; nCPS Z;" ), Printer::queuePositionCurrentSteps[Z_AXIS] );
                             Com::printF( PSTR( ";" ),         Printer::queuePositionCurrentSteps[Z_AXIS] / Printer::axisStepsPerMM[Z_AXIS] );
-                            Com::printF( PSTR( "; qTS;" ),    Printer::queuePositionTargetSteps[Z_AXIS] );
-                            Com::printFLN( PSTR( "; qLS;" ),  Printer::queuePositionLastSteps[Z_AXIS] );
-							
+
 #if FEATURE_HEAT_BED_Z_COMPENSATION || FEATURE_WORK_PART_Z_COMPENSATION
-                            Com::printF( PSTR( "; zTZ;" ), Printer::compensatedPositionTargetStepsZ );
-                            Com::printFLN( PSTR( "; zCZ;" ), Printer::compensatedPositionCurrentStepsZ );
+                            Com::printF( PSTR( "; tCZ;" ), Printer::compensatedPositionTargetStepsZ );
+                            Com::printF( PSTR( "; cCZ;" ), Printer::compensatedPositionCurrentStepsZ );
 #endif // FEATURE_HEAT_BED_Z_COMPENSATION || FEATURE_WORK_PART_Z_COMPENSATION
 
 #if FEATURE_EXTENDED_BUTTONS || FEATURE_PAUSE_PRINTING
-                            Com::printF( PSTR( "; direct TZ;" ), Printer::directPositionTargetSteps[Z_AXIS] );
-                            Com::printFLN( PSTR( "; CZ;" ), Printer::directPositionCurrentSteps[Z_AXIS] );
+                            Com::printF( PSTR( "; tPSZ;" ), Printer::directPositionTargetSteps[Z_AXIS] );
+                            Com::printF( PSTR( "; cPSZ;" ), Printer::directPositionCurrentSteps[Z_AXIS] );
 #endif // FEATURE_EXTENDED_BUTTONS || FEATURE_PAUSE_PRINTING
 
+                            Com::printF( PSTR( "; qTS;" ), Printer::queuePositionTargetSteps[Z_AXIS] );
+                            Com::printF( PSTR( "; qLS;" ), Printer::queuePositionLastSteps[Z_AXIS] );
 //                          Com::printFLN( PSTR( "; Int32;" ), g_debugInt32 );
-
-                            Com::printF( PSTR( "; SDX;" ), Printer::stepperDirection[X_AXIS] );
-                            Com::printF( PSTR( "; SDY;" ), Printer::stepperDirection[Y_AXIS] );
-                            Com::printFLN( PSTR( "; SDZ;" ), Printer::stepperDirection[Z_AXIS] );
-
-
-                            #if FEATURE_HEAT_BED_Z_COMPENSATION && FEATURE_WORK_PART_Z_COMPENSATION
-								if( !Printer::doHeatBedZCompensation && !Printer::doWorkPartZCompensation )
-								{
-									Com::printFLN( PSTR( "; return 1;" ) );
-								}
-                            #elif FEATURE_HEAT_BED_Z_COMPENSATION
-								if( !Printer::doHeatBedZCompensation )
-								{
-									Com::printFLN( PSTR( "; return heatbedz;" ) );
-								}
-                            #elif FEATURE_WORK_PART_Z_COMPENSATION
-								if( !Printer::doWorkPartZCompensation )
-								{
-									Com::printFLN( PSTR( "; return workpart;" ) );
-								}
-                            #endif // FEATURE_HEAT_BED_Z_COMPENSATION && FEATURE_WORK_PART_Z_COMPENSATION
-
-								if( Printer::blockAll )
-								{
-									// do not perform any compensation in case the moving is blocked
-									Com::printFLN( PSTR( "; return block;" ) );
-								}
-								if( PrintLine::direct.isZMove() )
-								{
-									// do not perform any compensation in case the moving is blocked
-									Com::printFLN( PSTR( "; return directZ;" ) );
-								}
-								if( PrintLine::cur->isZMove() )
-								{
-									// do not perform any compensation in case the moving is blocked
-									Com::printFLN( PSTR( "; return curZ;" ) );
-								}
-
                             break;
                         }
 
@@ -10729,11 +10722,53 @@ void processCommand( GCode* pCommand )
                 break;
             }
 
-            case 3920: // 3920 Old G-Code for SilentMode
+#if FEATURE_SILENT_MODE // Auswahl der Motor-Current-Settings
+            case 3920: // 3920 Decide if MOTOR_CURRENT_SILENT or MOTOR_CURRENT
             {
-                Com::printFLN(PSTR("M3920 SilentMode DEPREACHED. Configure motor current within EEPROM or Printers Menu") );
+                if( isSupportedMCommand( pCommand->M, OPERATING_MODE_PRINT ) )
+                {
+                    if(pCommand->hasS()){
+                        if(pCommand->S == 1 || pCommand->S == 0){
+                            if(pCommand->S == g_nSilentMode){
+                                Com::printFLN(PSTR("M3920 SilentMode was already set to ") , pCommand->S);
+                            }else{
+                                g_nSilentMode = pCommand->S;
+                                Com::printFLN( PSTR( "M3920 SilentMode " ), g_nSilentMode );
+                                Printer::setAllSteppersDisabled(); //unhome, you should only switch mode while not homed btw with z-Compensation off.
+                                Printer::disableXStepper();
+                                Printer::disableYStepper();
+                                Printer::disableZStepper();
+                                Extruder::disableAllExtruders();
+                                motorCurrentControlInit();
+                            }
+                        }else{
+                            Com::printFLN(PSTR("M3920 SilentMode S=1||0") , pCommand->S);
+                        }
+                    }else{
+                        if(g_nSilentMode){
+                            g_nSilentMode = 0;
+                            Com::printFLN( PSTR( "M3920 SilentMode 0" ) );
+                            Printer::setAllSteppersDisabled(); //unhome, you should only switch mode while not homed btw with z-Compensation off.
+                            Printer::disableXStepper();
+                            Printer::disableYStepper();
+                            Printer::disableZStepper();
+                            Extruder::disableAllExtruders();
+                            motorCurrentControlInit();
+                        }else{
+                            g_nSilentMode = 1;
+                            Com::printFLN( PSTR( "M3920 SilentMode 1" ) );  
+                            Printer::setAllSteppersDisabled(); //unhome, you should only switch mode while not homed btw with z-Compensation off.
+                            Printer::disableXStepper();
+                            Printer::disableYStepper();
+                            Printer::disableZStepper();
+                            Extruder::disableAllExtruders();
+                            motorCurrentControlInit();
+                        }
+                    }
+                }
                 break;
             }
+#endif // FEATURE_SILENT_MODE
 
             case 3939: // 3939 startViscosityTest - Testfunction to determine the digits over extrusion speed || by Nibbels
             {
@@ -11993,28 +12028,26 @@ void drv8711Init( void )
 } // drv8711Init
 
 
-void setMotorCurrent( unsigned char driver, uint8_t level )
+void setMotorCurrent( unsigned char driver, unsigned short level )
 {
+    unsigned short  command;
+    //char          i;
+    
+    
     // NOTE: Do not increase the current endlessly. In case the engine reaches its current saturation, the engine and the driver can heat up and loss power.
     // When the saturation is reached, more current causes more heating and more power loss.
     // In case of engines with lower quality, the saturation current may be reached before the nominal current.
-
-    //X = 1
-    //Y = 2
-    //Z = 3
-    //E0 = 4
-    //E1 = 5
 
     // configure the pins
     WRITE( DRV_SCLK, LOW );
     SET_OUTPUT( DRV_SCLK );
     WRITE( DRV_SDATI, LOW );
     SET_OUTPUT( DRV_SDATI );
-
-    drv8711Enable( driver );
+        
+    drv8711Enable( driver);
 
     // we have to write to register 01
-    unsigned short command = 0x1100 + (short)level;
+    command = 0x1100 + level;
     drv8711Transmit( command );
 
     drv8711Disable( driver );
@@ -12023,21 +12056,33 @@ void setMotorCurrent( unsigned char driver, uint8_t level )
 
 
 void motorCurrentControlInit( void )
-{
-    const unsigned short  uMotorCurrentUse[] = MOTOR_CURRENT_NORMAL; //--> {x,y,z,e1,e2} siehe RFx000.h
-    Printer::motorCurrent[X_AXIS]   = uMotorCurrentUse[X_AXIS];
-    Printer::motorCurrent[Y_AXIS]   = uMotorCurrentUse[Y_AXIS];
-    Printer::motorCurrent[Z_AXIS]   = uMotorCurrentUse[Z_AXIS];
-    Printer::motorCurrent[E_AXIS+0] = uMotorCurrentUse[E_AXIS+0];
-    Printer::motorCurrent[E_AXIS+1] = uMotorCurrentUse[E_AXIS+1]; //egal ob NUM_EXTRUDER == 1 oder 2
+{   
+    #if FEATURE_SILENT_MODE
+        const unsigned short    uMotorCurrent[] = MOTOR_CURRENT;
+        const unsigned short    uMotorCurrentSilent[] = MOTOR_CURRENT_SILENT;
+    #else
+        const unsigned short    uMotorCurrent[] = MOTOR_CURRENT;
+    #endif // FEATURE_SILENT_MODE   
+    
+    unsigned char           i;
+
     // configure all DRV8711
     drv8711Init();
+
     // set all motor currents
-    for( uint8_t i=0 ; i<DRV8711_NUM_CHANNELS ; i++ )
+    for(i=0;i<DRV8711_NUM_CHANNELS;i++)
     {
-        if(i < 3+NUM_EXTRUDER) setMotorCurrent( i+1, Printer::motorCurrent[i] );
-        else setMotorCurrent( i+1, MOTOR_CURRENT_MIN );
+    #if FEATURE_SILENT_MODE     
+        if(!g_nSilentMode){
+            setMotorCurrent( i+1, uMotorCurrent[i] );
+        }else{
+            setMotorCurrent( i+1, uMotorCurrentSilent[i] );
+        }
+    #else
+        setMotorCurrent( i+1, uMotorCurrent[i] );
+    #endif // FEATURE_SILENT_MODE       
     }
+
 } // motorCurrentControlInit
 
 #endif // CURRENT_CONTROL_DRV8711

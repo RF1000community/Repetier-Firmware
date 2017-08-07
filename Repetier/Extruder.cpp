@@ -177,17 +177,17 @@ void Extruder::manageTemperatures()
             float target = act->targetTemperatureC;
 
             if( act->targetTemperatureC < 20.0f )
-            {
+			{
                 output = 0; // off is off, even if damping term wants a heat peak!
-            }
+			}
             else if( error > PID_CONTROL_RANGE )
-            {
+			{
                 output = act->pidMax;
-            }
+			}
             else if( error < -PID_CONTROL_RANGE )
-            {
+			{
                 output = 0;
-            }
+			}
             else
             {
                 float raising = 3.333 * (act->currentTemperatureC - act->tempArray[act->tempPointer]); // raising dT/dt, 3.33 = reciproke of time interval (300 ms)
@@ -420,14 +420,22 @@ void Extruder::selectExtruderById(uint8_t extruderId)
     Printer::maxAccelerationMMPerSquareSecond[E_AXIS] = Printer::maxTravelAccelerationMMPerSquareSecond[E_AXIS] = Extruder::current->maxAcceleration;
     Printer::maxTravelAccelerationStepsPerSquareSecond[E_AXIS] = Printer::maxPrintAccelerationStepsPerSquareSecond[E_AXIS] = Printer::maxAccelerationMMPerSquareSecond[E_AXIS] * Printer::axisStepsPerMM[E_AXIS];
 
-#if USE_ADVANCE
+#if defined(USE_ADVANCE)
+    Printer::minExtruderSpeed = (uint8_t)floor(HAL::maxExtruderTimerFrequency()/(Extruder::current->maxStartFeedrate*Extruder::current->stepsPerMM));
     Printer::maxExtruderSpeed = (uint8_t)floor(HAL::maxExtruderTimerFrequency()/(Extruder::current->maxFeedrate*Extruder::current->stepsPerMM));
     if(Printer::maxExtruderSpeed>15) Printer::maxExtruderSpeed = 15;
-    //float maxdist = Extruder::current->maxFeedrate*Extruder::current->maxFeedrate*0.00013888/Extruder::current->maxAcceleration;
-    //maxdist-= Extruder::current->maxStartFeedrate*Extruder::current->maxStartFeedrate*0.5/Extruder::current->maxAcceleration;    
+    if(Printer::maxExtruderSpeed>=Printer::minExtruderSpeed)
+    {
+        Printer::maxExtruderSpeed = Printer::minExtruderSpeed;
+    }
+    else
+    {
+        float maxdist = Extruder::current->maxFeedrate*Extruder::current->maxFeedrate*0.00013888/Extruder::current->maxAcceleration;
+        maxdist-= Extruder::current->maxStartFeedrate*Extruder::current->maxStartFeedrate*0.5/Extruder::current->maxAcceleration;
+    }
     float fmax=((float)HAL::maxExtruderTimerFrequency()/((float)Printer::maxExtruderSpeed*Printer::axisStepsPerMM[E_AXIS])); // Limit feedrate to interrupt speed
     if(fmax<Printer::maxFeedrate[E_AXIS]) Printer::maxFeedrate[E_AXIS] = fmax;
-#endif // USE_ADVANCE
+#endif // defined(USE_ADVANCE)
 
     Extruder::current->tempControl.updateTempControlVars();
     Printer::extruderOffset[X_AXIS] = -Extruder::current->xOffset*Printer::invAxisStepsPerMM[X_AXIS];
@@ -440,9 +448,6 @@ void Extruder::selectExtruderById(uint8_t extruderId)
         Printer::feedrate = oldfeedrate;
     }
     Printer::updateCurrentPosition();
-#if USE_ADVANCE
-    HAL::resetExtruderDirection();
-#endif // USE_ADVANCE
 
 #if NUM_EXTRUDER>1
     if(executeSelect) // Run only when changing
@@ -1589,7 +1594,7 @@ Extruder extruder[NUM_EXTRUDER] =
         EXT0_MAX_FEEDRATE,EXT0_MAX_ACCELERATION,EXT0_MAX_START_FEEDRATE,0,EXT0_WATCHPERIOD
         ,EXT0_WAIT_RETRACT_TEMP,EXT0_WAIT_RETRACT_UNITS,0
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
         ,EXT0_ADVANCE_K
 #endif // ENABLE_QUADRATIC_ADVANCE
@@ -1619,7 +1624,7 @@ Extruder extruder[NUM_EXTRUDER] =
         EXT1_MAX_FEEDRATE,EXT1_MAX_ACCELERATION,EXT1_MAX_START_FEEDRATE,0,EXT1_WATCHPERIOD
         ,EXT1_WAIT_RETRACT_TEMP,EXT1_WAIT_RETRACT_UNITS,0
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
         ,EXT1_ADVANCE_K
 #endif // ENABLE_QUADRATIC_ADVANCE
@@ -1649,7 +1654,7 @@ Extruder extruder[NUM_EXTRUDER] =
         EXT2_MAX_FEEDRATE,EXT2_MAX_ACCELERATION,EXT2_MAX_START_FEEDRATE,0,EXT2_WATCHPERIOD
         ,EXT2_WAIT_RETRACT_TEMP,EXT2_WAIT_RETRACT_UNITS,0
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
         ,EXT2_ADVANCE_K
 #endif // ENABLE_QUADRATIC_ADVANCE
@@ -1673,7 +1678,7 @@ Extruder extruder[NUM_EXTRUDER] =
         EXT3_MAX_FEEDRATE,EXT3_MAX_ACCELERATION,EXT3_MAX_START_FEEDRATE,0,EXT3_WATCHPERIOD
         ,EXT3_WAIT_RETRACT_TEMP,EXT3_WAIT_RETRACT_UNITS,0
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
         ,EXT3_ADVANCE_K
 #endif // ENABLE_QUADRATIC_ADVANCE
@@ -1699,7 +1704,7 @@ Extruder extruder[NUM_EXTRUDER] =
         EXT4_MAX_FEEDRATE,EXT4_MAX_ACCELERATION,EXT4_MAX_START_FEEDRATE,0,EXT4_WATCHPERIOD
         ,EXT4_WAIT_RETRACT_TEMP,EXT4_WAIT_RETRACT_UNITS,0
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
         ,EXT4_ADVANCE_K
 #endif // ENABLE_QUADRATIC_ADVANCE
@@ -1724,7 +1729,7 @@ Extruder extruder[NUM_EXTRUDER] =
         EXT5_MAX_FEEDRATE,EXT5_MAX_ACCELERATION,EXT5_MAX_START_FEEDRATE,0,EXT5_WATCHPERIOD
         ,EXT5_WAIT_RETRACT_TEMP,EXT5_WAIT_RETRACT_UNITS,0
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
         ,EXT5_ADVANCE_K
 #endif // ENABLE_QUADRATIC_ADVANCE

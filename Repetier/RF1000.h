@@ -576,14 +576,14 @@ Heat manager for heated bed:
 /** \brief The maximum value, I-gain can contribute to the output.
 The precise values may differ for different nozzle/resistor combination.
  Overridden if EEPROM activated. */
-#define HEATED_BED_PID_INTEGRAL_DRIVE_MAX   80
+#define HEATED_BED_PID_INTEGRAL_DRIVE_MAX   255
 
 /** \brief lower value for integral part
 The I state should converge to the exact heater output needed for the target temperature.
 To prevent a long deviation from the target zone, this value limits the lower value.
 A good start is 30 lower then the optimal value. You need to leave room for cooling.
  Overridden if EEPROM activated. */
-#define HEATED_BED_PID_INTEGRAL_DRIVE_MIN   5
+#define HEATED_BED_PID_INTEGRAL_DRIVE_MIN   80
 
 /** \brief P-gain.  Overridden if EEPROM activated. */
 #define HEATED_BED_PID_PGAIN                53.74
@@ -716,11 +716,9 @@ can set it on for safety. */
 // ##   miscellaneous configurations
 // ##########################################################################################
 
-/** \brief Motor Current MAX setting */
-#define MOTOR_CURRENT_MAX                       {150,150,126,126,126}                               // Values 0-255 (126 = ~2A), order: driver 1 (x), driver 2 (y), driver 3 (z), driver 4 (extruder 1), driver 5 (reserved)
-/** \brief Motor Current settings at start: Tweak with menu for better silence <-> stability */
-#define MOTOR_CURRENT_NORMAL                    {110,110,95,90,90}
-#define MOTOR_CURRENT_MIN                       EXTRUDER_CURRENT_PAUSED
+/** \brief Motor Current setting */
+#define MOTOR_CURRENT                       {150,150,126,126,126}                               // Values 0-255 (126 = ~2A), order: driver 1 (x), driver 2 (y), driver 3 (z), driver 4 (extruder 1), driver 5 (reserved)
+#define MOTOR_CURRENT_SILENT                {110,110,90,90,90}
 
 /** \brief number of analog input signals. Normally 1 for each temperature sensor */
 #define ANALOG_INPUTS (EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+BED_ANALOG_INPUTS)
@@ -946,7 +944,7 @@ it 0 as default. */
 Without a correct adjusted advance algorithm, you get blobs at points, where acceleration changes. The
 effect increases with speed and acceleration difference. Using the advance method decreases this effect.
 For more informations, read the wiki. */
-#define USE_ADVANCE 1
+#define USE_ADVANCE
 
 /** \brief enables quadratic component.
 Uncomment to allow a quadratic advance dependency. Linear is the dominant value, so no real need

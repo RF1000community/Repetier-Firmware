@@ -19,10 +19,11 @@
 #include "Repetier.h"
 #include <Wire.h>
 
-#if USE_ADVANCE
+#if defined(USE_ADVANCE)
+uint8_t         Printer::minExtruderSpeed;                              ///< Timer delay for start extruder speed
 uint8_t         Printer::maxExtruderSpeed;                              ///< Timer delay for end extruder speed
 volatile int    Printer::extruderStepsNeeded;                           ///< This many extruder steps are still needed, <0 = reverse steps needed.
-#endif // USE_ADVANCE
+#endif // defined(USE_ADVANCE)
 
 uint8_t         Printer::unitIsInches = 0;                              ///< 0 = Units are mm, 1 = units are inches.
 
@@ -40,7 +41,6 @@ float           Printer::maxTravelAccelerationMMPerSquareSecond[4] = {MAX_TRAVEL
 unsigned long   Printer::maxPrintAccelerationStepsPerSquareSecond[4];
 /** Acceleration in steps/s^2 in movement mode.*/
 unsigned long   Printer::maxTravelAccelerationStepsPerSquareSecond[4];
-uint32_t        Printer::maxInterval;
 #endif // RAMP_ACCELERATION
 
 uint8_t         Printer::relativeCoordinateMode = false;                ///< Determines absolute (false) or relative Coordinates (true).
@@ -68,7 +68,7 @@ unsigned long   Printer::interval;                                      ///< Las
 unsigned long   Printer::timer;                                         ///< used for acceleration/deceleration timing
 unsigned long   Printer::stepNumber;                                    ///< Step number in current move.
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
 long            Printer::advanceExecuted;                               ///< Executed advance steps
 #endif // ENABLE_QUADRATIC_ADVANCE
@@ -208,8 +208,6 @@ unsigned char   Printer::wrongType;
 unsigned char   Printer::g_unlock_movement = 0;
 #endif //FEATURE_UNLOCK_MOVEMENT
 
-uint8_t         Printer::motorCurrent[5] = {0,0,0,0,0};
-
 #if FEATURE_ZERO_DIGITS
 short   Printer::g_pressure_offset = 0;
 #endif // FEATURE_ZERO_DIGITS
@@ -324,13 +322,6 @@ void Printer::updateDerivedParameter()
     minimumSpeed = accel*sqrt(2.0f/(axisStepsPerMM[X_AXIS]*accel));
     accel = RMath::max(maxAccelerationMMPerSquareSecond[Z_AXIS],maxTravelAccelerationMMPerSquareSecond[Z_AXIS]);
     minimumZSpeed = accel*sqrt(2.0f/(axisStepsPerMM[Z_AXIS]*accel));
-
-    maxInterval = F_CPU / (minimumSpeed * axisStepsPerMM[X_AXIS]);
-    uint32_t tmp = F_CPU / (minimumSpeed * axisStepsPerMM[Y_AXIS]);
-    if(tmp < maxInterval) maxInterval = tmp;
-    tmp = F_CPU / (minimumZSpeed * axisStepsPerMM[Z_AXIS]);
-    if(tmp < maxInterval) maxInterval = tmp;
-
     Printer::updateAdvanceFlags();
 
 } // updateDerivedParameter
@@ -384,16 +375,18 @@ void Printer::updateAdvanceFlags()
 {
     Printer::setAdvanceActivated(false);
 
-#if USE_ADVANCE
-    for(uint8_t i = 0; i < NUM_EXTRUDER; i++) {
-        if(extruder[i].advanceL!=0) {
+#if defined(USE_ADVANCE)
+    for(uint8_t i=0; i<NUM_EXTRUDER; i++)
+    {
+        if(extruder[i].advanceL!=0)
+        {
             Printer::setAdvanceActivated(true);
         }
 #ifdef ENABLE_QUADRATIC_ADVANCE
-        if(extruder[i].advanceK != 0) Printer::setAdvanceActivated(true);
+        if(extruder[i].advanceK!=0) Printer::setAdvanceActivated(true);
 #endif // ENABLE_QUADRATIC_ADVANCE
     }
-#endif // USE_ADVANCE
+#endif // defined(USE_ADVANCE)
 
 } // updateAdvanceFlags
 
@@ -980,10 +973,11 @@ void Printer::setup()
     extrudeMultiply = 100;
     queuePositionCommandMM[X_AXIS] = queuePositionCommandMM[Y_AXIS] = queuePositionCommandMM[Z_AXIS] = 0;
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
     advanceExecuted = 0;
 #endif // ENABLE_QUADRATIC_ADVANCE
+
     advanceStepsSet = 0;
 #endif // USE_ADVANCE
 
@@ -1092,7 +1086,6 @@ void Printer::setup()
     endstopZMaxHit        = ENDSTOP_NOT_HIT;
 #endif // FEATURE_CONFIGURABLE_Z_ENDSTOPS
 
-
 #if STEPPER_ON_DELAY
     enabledStepper[X_AXIS] = 0;
     enabledStepper[Y_AXIS] = 0;
@@ -1138,9 +1131,9 @@ void Printer::setup()
     RGBLightModeForceWhite = 0;
 #endif // FEATURE_RGB_LIGHT_EFFECTS
 
-#if USE_ADVANCE
+#if defined(USE_ADVANCE)
     extruderStepsNeeded = 0;
-#endif // USE_ADVANCE
+#endif // defined(USE_ADVANCE)
 
     EEPROM::initBaudrate();
     HAL::serialSetBaudrate(baudrate);
@@ -1839,11 +1832,11 @@ Bzw man könnte auch direkt ausgleichen, wenn der eine ins plus will, der andere
                 HAL::delayMicroseconds(STEPPER_HIGH_DELAY+DOUBLE_STEP_DELAY);
                 return;
             }
-        if( PrintLine::direct.isZMove() )
+/*      if( PrintLine::direct.isZMove() )
             {
                 HAL::delayMicroseconds(STEPPER_HIGH_DELAY+DOUBLE_STEP_DELAY);
                 return;
-            }
+            }*/
 #endif // STEPPER_HIGH_DELAY+DOUBLE_STEP_DELAY>0
         return;
     }
@@ -1856,12 +1849,12 @@ Bzw man könnte auch direkt ausgleichen, wenn der eine ins plus will, der andere
             return;
         }
     }
-    if( PrintLine::direct.isZMove() )
+/* 17_06_12 könnte das folgende hier fehlen? siehe bug mit dem verzählen. ... test irgendwann später mal.*/
+  /*  if( PrintLine::direct.isZMove() )
     {
         // do not peform any compensation while there is a direct-move into z-direction
         return;
-    }
-
+    }*/
 
     if( compensatedPositionCurrentStepsZ < compensatedPositionTargetStepsZ )
     {

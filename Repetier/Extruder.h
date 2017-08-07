@@ -108,7 +108,7 @@ class Extruder   // Size: 12*1 Byte+12*4 Byte+4*2Byte = 68 Byte
     int16_t     waitRetractUnits;           ///< Units to retract the filament when waiting for heatup
     volatile int8_t stepperDirection;
 
-#if USE_ADVANCE
+#ifdef USE_ADVANCE
 #ifdef ENABLE_QUADRATIC_ADVANCE
     float       advanceK;                   ///< Koefficient for advance algorithm. 0 = off
 #endif // ENABLE_QUADRATIC_ADVANCE

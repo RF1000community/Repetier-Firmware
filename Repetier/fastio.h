@@ -80,6 +80,7 @@
 
 /// check if pin is an output wrapper
 #define     GET_OUTPUT(IO)      _GET_OUTPUT(IO)
+
 /*
     ports and functions
     added as necessary or if I feel like it - not a comprehensive list!
